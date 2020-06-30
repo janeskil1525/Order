@@ -1,0 +1,9 @@
+{
+  "swagger" : "2.0",
+  "info" : { "version": "0.8", "title" : "LagaPro Order Service" },
+  "schemes" : [ "http" ],
+  "basePath" : "/api",
+  "paths" :{
+
+  }
+}

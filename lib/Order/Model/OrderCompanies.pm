@@ -1,4 +1,4 @@
-package Daje::Model::OrderCompanies;
+package Order::Model::OrderCompanies;
 use Mojo::Base 'Daje::Utils::Sentry::Raven';
 
 use Try::Tiny;

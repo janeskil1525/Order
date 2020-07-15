@@ -1,4 +1,4 @@
-package Daje::Model::OrderAddresses;
+package Order::Model::OrderAddresses;
 use Mojo::Base 'Daje::Utils::Sentry::Raven';
 
 use Daje::Utils::Addresses::Company;

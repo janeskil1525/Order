@@ -1,4 +1,4 @@
-package Daje::Model::OrderHead;
+package Order::Model::OrderHead;
 use Mojo::Base 'Daje::Utils::Sentry::Raven';
 
 use Mojo::JSON qw {decode_json };

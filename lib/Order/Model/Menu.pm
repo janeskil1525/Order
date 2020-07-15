@@ -1,4 +1,4 @@
-package Matorit::Model::Menu;
+package Order::Model::Menu;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 has 'pg';

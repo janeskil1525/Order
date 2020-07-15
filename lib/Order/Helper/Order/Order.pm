@@ -1,5 +1,5 @@
-package Daje::Order::Order;
-use Mojo::Base 'Daje::Utils::Sentry::Raven';
+package Order::Helper::Order::Order;
+use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Daje::Model::OrderHead;
 use Daje::Model::OrderItem;

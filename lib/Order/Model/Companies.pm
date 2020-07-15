@@ -1,4 +1,4 @@
-package Matorit::Model::Companies;
+package Order::Model::Companies;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Try::Tiny;

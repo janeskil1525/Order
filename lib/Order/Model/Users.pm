@@ -1,4 +1,4 @@
-package Matorit::Model::Users;
+package Order::Model::Users;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Daje::Model::User;

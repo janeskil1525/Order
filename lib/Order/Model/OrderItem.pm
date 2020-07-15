@@ -1,4 +1,4 @@
-package Daje::Model::OrderItem;
+package Order::Model::OrderItem;
 use Mojo::Base 'Daje::Utils::Sentry::Raven';
 
 use Daje::Utils::Postgres::Columns;

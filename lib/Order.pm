@@ -9,7 +9,7 @@ use Mojo::JSON qw{encode_json from_json};
 use Mojo::File;
 use File::Share;
 
-$ENV{MAILER_HOME} = '/home/jan/Project/Order/'
+$ENV{ORDER_HOME} = '/home/jan/Project/Order/'
     unless $ENV{ORDER_HOME};
 
 has dist_dir => sub {

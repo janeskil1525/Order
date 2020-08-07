@@ -89,9 +89,26 @@ CREATE TABLE public.users_companies
 ALTER TABLE public.users_companies
     OWNER to postgres;
 
--- Index: fki_users_company_companies_fkey_fkey
+drop table if exists basket;
 
--- DROP INDEX public.fki_users_company_companies_fkey_fkey;
+
+create table if not exists basket
+(
+    basket_pkey serial not null,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    basketid varchar(100) not null default '',
+    approved boolean not null default false,
+    status varchar(100) not null default 'NEW',
+    payment varchar(100) not null default '',
+    users_fkey bigint not null DEFAULT 0,
+    companies_fkey bigint not null DEFAULT 0,
+    CONSTRAINT basket_pkey PRIMARY KEY (basket_pkey)
+
+) ;
 
 CREATE INDEX fki_users_company_companies_fkey_fkey
     ON public.users_companies USING btree
@@ -148,8 +165,7 @@ create table if not exists order_head
     orderdate timestamp without time zone NOT NULL DEFAULT NOW(),
     users_fkey bigint not null default 0,
     companies_fkey bigint not null default 0,
-    CONSTRAINT order_head_pkey PRIMARY KEY (order_head_pkey)
-      USING INDEX TABLESPACE "webshop",
+    CONSTRAINT order_head_pkey PRIMARY KEY (order_head_pkey),
     CONSTRAINT order_head_users_fkey_fkey FOREIGN KEY (users_fkey)
       REFERENCES public.users (users_pkey) MATCH SIMPLE
       ON UPDATE NO ACTION
@@ -160,12 +176,12 @@ create table if not exists order_head
       ON UPDATE NO ACTION
       ON DELETE NO ACTION
       DEFERRABLE
-) TABLESPACE "webshop";
+) ;
 
 CREATE unique INDEX idx_order_head_order_no
     ON public.order_head USING btree
         (order_no ASC NULLS LAST)
-    TABLESPACE webshop;
+   ;
 
 
 create table if not exists order_items
@@ -183,23 +199,21 @@ create table if not exists order_items
     quantity int not null default 1,
     price numeric(15,2) not null default 0.0,
     deliverydate timestamp without time zone NOT NULL DEFAULT NOW(),
-    CONSTRAINT order_items_pkey PRIMARY KEY (order_items_pkey)
-       USING INDEX TABLESPACE "webshop",
+    CONSTRAINT order_items_pkey PRIMARY KEY (order_items_pkey),
     CONSTRAINT order_head_order_items_fkey FOREIGN KEY (order_head_fkey)
        REFERENCES public.order_head (order_head_pkey) MATCH SIMPLE
        ON UPDATE NO ACTION
        ON DELETE NO ACTION
        DEFERRABLE
-) TABLESPACE "webshop";
+) ;
 
 CREATE unique INDEX idx_order_head_fkey_itemno
     ON public.order_items USING btree
-        (order_head_fkey, itemno)
-    TABLESPACE webshop;
+        (order_head_fkey, itemno);
 
 CREATE TABLE public.order_vehicle
 (
-    order_vehicle_pkey integer NOT NULL DEFAULT nextval('basket_vehicle_basket_vehicle_pkey_seq'::regclass),
+    order_vehicle_pkey SERIAL not null,
     editnum bigint NOT NULL DEFAULT 1,
     insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System'::character varying,
     insdatetime timestamp without time zone NOT NULL DEFAULT now(),
@@ -207,38 +221,35 @@ CREATE TABLE public.order_vehicle
     moddatetime timestamp without time zone NOT NULL DEFAULT now(),
     regplate character varying(10) COLLATE pg_catalog."default" NOT NULL,
     order_items_fkey bigint NOT NULL,
-    CONSTRAINT order_vehicle_pkey PRIMARY KEY (order_vehicle_pkey)
-        USING INDEX TABLESPACE webshop,
+    CONSTRAINT order_vehicle_pkey PRIMARY KEY (order_vehicle_pkey),
     CONSTRAINT order_vehicle_order_items_fkey FOREIGN KEY (order_items_fkey)
         REFERENCES public.order_items (order_items_pkey) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         DEFERRABLE
-)TABLESPACE webshop;
+);
 
 CREATE UNIQUE INDEX idx_order_vehicle_order_items_fkey_regplate_unique
     ON public.order_vehicle USING btree
-        (regplate, order_items_fkey)
-    TABLESPACE webshop;
+        (regplate, order_items_fkey);
 
 CREATE TABLE public.order_addresses
 (
     order_addresses_pkey serial,
-    editnum bigint NOT NULL DEFAULT 1,
-    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
-    insdatetime timestamp without time zone NOT NULL DEFAULT now(),
-    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
-    moddatetime timestamp without time zone NOT NULL DEFAULT now(),
-    name character varying(200) COLLATE pg_catalog."default" DEFAULT ''::character varying,
-    address1 character varying(200) COLLATE pg_catalog."default" DEFAULT ''::character varying,
-    address2 character varying(200) COLLATE pg_catalog."default" DEFAULT ''::character varying,
-    address3 character varying(200) COLLATE pg_catalog."default" DEFAULT ''::character varying,
-    city character varying(200) COLLATE pg_catalog."default" DEFAULT ''::character varying,
-    zipcode character varying(200) COLLATE pg_catalog."default" DEFAULT ''::character varying,
-    country character varying(30) COLLATE pg_catalog."default" DEFAULT ''::character varying,
+    editnum              bigint                                             NOT NULL DEFAULT 1,
+    insby                character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    insdatetime          timestamp without time zone                        NOT NULL DEFAULT now(),
+    modby                character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    moddatetime          timestamp without time zone                        NOT NULL DEFAULT now(),
+    name                 character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    address1             character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    address2             character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    address3             character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    city                 character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    zipcode              character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    country              character varying(30) COLLATE pg_catalog."default"          DEFAULT ''::character varying,
     CONSTRAINT order_addresses_pkey PRIMARY KEY (order_addresses_pkey)
-        USING INDEX TABLESPACE webshop
-) TABLESPACE webshop;
+);
 
 
 CREATE TABLE public.order_addresses_order
@@ -252,8 +263,7 @@ CREATE TABLE public.order_addresses_order
     order_head_fkey bigint NOT NULL,
     order_addresses_fkey bigint NOT NULL,
     address_type character varying COLLATE pg_catalog."default" NOT NULL DEFAULT 'Invoice'::character varying,
-    CONSTRAINT order_addresses_order_pkey PRIMARY KEY (order_addresses_order_pkey)
-        USING INDEX TABLESPACE webshop,
+    CONSTRAINT order_addresses_order_pkey PRIMARY KEY (order_addresses_order_pkey),
     CONSTRAINT order_addresses_order_head_fkey_fkey FOREIGN KEY (order_head_fkey)
         REFERENCES public.order_head (order_head_pkey) MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -264,13 +274,12 @@ CREATE TABLE public.order_addresses_order
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         DEFERRABLE
-)TABLESPACE webshop;
+);
 
 
 CREATE UNIQUE INDEX idx_order_address_order_address_address_type_unique
     ON public.order_addresses_order USING btree
-        (order_head_fkey, order_addresses_fkey, address_type COLLATE pg_catalog."default")
-    TABLESPACE webshop;
+        (order_head_fkey, order_addresses_fkey, address_type COLLATE pg_catalog."default");
 
 CREATE TABLE public.order_companies_order
 (
@@ -283,8 +292,7 @@ CREATE TABLE public.order_companies_order
     order_head_fkey bigint NOT NULL,
     companies_fkey bigint NOT NULL,
     relation_type character varying COLLATE pg_catalog."default" NOT NULL DEFAULT 'Supplier'::character varying,
-    CONSTRAINT order_companies_order_pkey PRIMARY KEY (order_companies_order_pkey)
-        USING INDEX TABLESPACE webshop,
+    CONSTRAINT order_companies_order_pkey PRIMARY KEY (order_companies_order_pkey),
     CONSTRAINT order_companies_order_order_head_fkey FOREIGN KEY (order_head_fkey)
         REFERENCES public.order_head (order_head_pkey) MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -295,9 +303,9 @@ CREATE TABLE public.order_companies_order
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         DEFERRABLE
-)TABLESPACE webshop;
+);
 
-CREATE TABLE public.order_basket
+CREATE TABLE order_basket
 (
     order_basket_pkey serial,
     editnum bigint NOT NULL DEFAULT 1,
@@ -307,8 +315,7 @@ CREATE TABLE public.order_basket
     moddatetime timestamp without time zone NOT NULL DEFAULT now(),
     order_head_fkey bigint NOT NULL,
     basket_fkey bigint NOT NULL,
-    CONSTRAINT order_basket_pkey PRIMARY KEY (order_basket_pkey)
-        USING INDEX TABLESPACE webshop,
+    CONSTRAINT order_basket_pkey PRIMARY KEY (order_basket_pkey),
     CONSTRAINT order_basket_order_head_fkey_fkey FOREIGN KEY (order_head_fkey)
         REFERENCES public.order_head (order_head_pkey) MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -319,8 +326,217 @@ CREATE TABLE public.order_basket
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         DEFERRABLE
-)TABLESPACE webshop;
+);
 
 ALTER TABLE order_items
     ADD COLUMN freight numeric(15,2) NOT NULL DEFAULT 0;
+
+create table if not exists languages
+(
+     languages_pkey serial not null,
+     editnum bigint NOT NULL DEFAULT 1,
+     insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+     insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+     modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+     moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+     lan character varying(10) NOT NULL,
+     lan_name character varying(100) NOT NULL,
+     CONSTRAINT languages_pkey PRIMARY KEY (languages_pkey)
+);
+
+INSERT INTO languages (lan, lan_name) VALUES ('dan', 'Danish');
+INSERT INTO languages (lan, lan_name) VALUES ('fin', 'Finnish');
+INSERT INTO languages (lan, lan_name) VALUES ('deu', 'German');
+INSERT INTO languages (lan, lan_name) VALUES ('nor', 'Norwegian');
+INSERT INTO languages (lan, lan_name) VALUES ('eng', 'English');
+INSERT INTO languages (lan, lan_name) VALUES ('swe', 'Swedish');
+
+CREATE TABLE IF NOT EXISTS translations
+(
+    translations_pkey SERIAL NOT NULL,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System'::character varying,
+    insdatetime timestamp without time zone NOT NULL DEFAULT now(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System'::character varying,
+    moddatetime timestamp without time zone NOT NULL DEFAULT now(),
+    languages_fkey integer NOT NULL DEFAULT 0,
+    module character varying(100)  NOT NULL,
+    tag character varying(100) NOT NULL,
+    translation text NOT NULL,
+    CONSTRAINT translations_pkey PRIMARY KEY (translations_pkey),
+    CONSTRAINT languages_translations_fkey FOREIGN KEY (languages_fkey)
+        REFERENCES languages (languages_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE
+) ;
+
+CREATE UNIQUE INDEX if not exists idx_translations_languages_fkey_module_tag_unique
+    ON translations USING btree
+        (languages_fkey, module, tag);
+
+CREATE  INDEX if not exists idx_translations_languages_fkey
+    ON translations USING btree
+        (languages_fkey);
+
+INSERT INTO translations (languages_fkey, module, tag, translation) VALUES
+(6, 'order_item', 'order_items_pkey','Primärnyckel'),
+(6, 'order_item', 'order_head_fkey','Orderhuvud'),
+(6, 'order_item', 'itemno','Rad'),
+(6, 'order_item', 'stockitem','Artikel'),
+(6, 'order_item', 'description','Beskrivning'),
+(6, 'order_item', 'quantity','Antal'),
+(6, 'order_item', 'price','Pris'),
+(6, 'order_item', 'deliverydate','Leverans'),
+(6, 'order_item', 'rfq_note','Offertförfrågan text');
+
+INSERT INTO translations (languages_fkey, module, tag, translation) VALUES
+(6, 'basket_item', 'basket_item_pkey','Primärnyckel'),
+(6, 'basket_item', 'basket_fkey','Kundkorg'),
+(6, 'basket_item', 'itemtype','Radtype'),
+(6, 'basket_item', 'itemno','Rad'),
+(6, 'basket_item', 'stockitem','Artikel'),
+(6, 'basket_item', 'description','Beskrivning'),
+(6, 'basket_item', 'quantity','Antal'),
+(6, 'basket_item', 'price','Pris'),
+(6, 'basket_item', 'externalref','Extern referens'),
+(6, 'basket_item', 'expirydate','Utgångsdatum'),
+(6, 'basket_item', 'supplier_fkey','Leverantör'),
+(6, 'basket_item', 'rfq_note','Offertförfrågan');
+
+INSERT INTO translations (languages_fkey, module, tag, translation) VALUES
+(6, 'order_head', 'order_head_pkey','Primärnyckel'),
+(6, 'order_head', 'order_type','Order typ'),
+(6, 'order_head', 'order_no','Order nummer'),
+(6, 'order_head', 'orderdate','Order datum'),
+(6, 'order_head', 'users_fkey','Användarnyckel'),
+(6, 'order_head', 'companies_fkey','Företagsnyckel');
+
+INSERT INTO translations (languages_fkey, module, tag, translation) VALUES
+(6, 'order_addresses', 'order_addresses_pkey','Primärnyckel'),
+(6, 'order_addresses', 'name','Namn'),
+(6, 'order_addresses', 'address1','Address'),
+(6, 'order_addresses', 'address2','Address'),
+(6, 'order_addresses', 'address3','Address'),
+(6, 'order_addresses', 'city','Postort'),
+(6, 'order_addresses', 'zipcode','Postnummer'),
+(6, 'order_addresses', 'country','Land');
+
+INSERT INTO translations (languages_fkey, module, tag, translation) VALUES
+(6, 'basket_item', 'freight','Frakt'),
+(6, 'Basket_grid_fields', 'freight','Frakt'),
+(6, 'order_item', 'freight','Frakt');
+
+drop table if exists basket_addresses_basket;
+drop table if exists addresses_basket ;
+drop table if exists basket_addresses;
+drop table if exists basket_vehicle;
+drop table if exists basket_item;
+drop table if exists basket_addresses;
+
+
+CREATE UNIQUE INDEX idx_basket_basketid
+    ON public.basket USING btree
+        (basketid );
+
+create table if not exists basket_item
+(
+   basket_item_pkey serial not null,
+   editnum bigint NOT NULL DEFAULT 1,
+   insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+   insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+   modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+   moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+   basket_fkey bigint not null default 0,
+   itemtype int default 1,
+   itemno bigint not null default 1,
+   stockitem varchar(100)  not null,
+   description varchar(100) default '',
+   quantity bigint not null default 1,
+   price numeric(15, 2) not null default 0,
+   externalref bigint default 0,
+   expirydate timestamp without time zone NOT NULL DEFAULT NOW(),
+   CONSTRAINT basket_item_pkey PRIMARY KEY (basket_item_pkey)
+) ;
+
+ALTER TABLE public.basket_item
+    ADD CONSTRAINT basket_fkey_fkey FOREIGN KEY (basket_fkey)
+        REFERENCES public.basket (basket_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID;
+CREATE INDEX fki_basket_fkey_fkey
+    ON public.basket_item(basket_fkey);
+
+CREATE UNIQUE INDEX idx_basket_item_basket_fkey_itemno
+    ON public.basket_item USING btree
+        (basket_fkey, itemno ) ;
+
+create table if not exists basket_addresses
+(
+    basket_addresses_pkey serial not null,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    name varchar(200) default '',
+    address1 varchar(200) default '',
+    address2 varchar(200) default '',
+    address3 varchar(200) default '',
+    city varchar(200) default '',
+    zipcode varchar(200) default '',
+    country varchar(30) default '',
+    CONSTRAINT basket_addresses_pkey PRIMARY KEY (basket_addresses_pkey)
+);
+
+create table if not exists basket_addresses_basket
+(
+   basket_addresses_basket_pkey serial not null,
+   editnum bigint NOT NULL DEFAULT 1,
+   insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+   insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+   modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+   moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+   basket_fkey bigint not null,
+   basket_addresses_fkey bigint not null,
+   address_type varchar NOT NULL DEFAULT 'Invoice',
+   CONSTRAINT basket_addressesbasket_pkey PRIMARY KEY (basket_addresses_basket_pkey),
+   CONSTRAINT address_basket_basket_fkey_fkey FOREIGN KEY (basket_fkey)
+       REFERENCES public.basket (basket_pkey) MATCH SIMPLE
+       ON UPDATE NO ACTION
+       ON DELETE NO ACTION
+       DEFERRABLE,
+   CONSTRAINT basket_addresses_basket_address_fkey_fkey FOREIGN KEY (basket_addresses_fkey)
+       REFERENCES public.basket_addresses (basket_addresses_pkey) MATCH SIMPLE
+       ON UPDATE NO ACTION
+       ON DELETE NO ACTION
+       DEFERRABLE
+) ;
+
+CREATE UNIQUE INDEX idx_basket_address_basket_address_address_type_unique
+    ON public.basket_addresses_basket USING btree
+        (basket_fkey, basket_addresses_fkey, address_type);
+
+create table if not exists basket_vehicle
+(
+     basket_vehicle_pkey serial not null,
+     editnum bigint NOT NULL DEFAULT 1,
+     insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+     insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+     modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+     moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+     regplate character varying(10) NOT NULL,
+     basket_item_fkey bigint NOT NULL,
+     CONSTRAINT basket_vehicle_pkey PRIMARY KEY (basket_vehicle_pkey),
+     CONSTRAINT basket_vehicle_basket_fkey FOREIGN KEY (basket_item_fkey)
+         REFERENCES public.basket_item (basket_item_pkey) MATCH SIMPLE
+         ON UPDATE NO ACTION
+         ON DELETE NO ACTION
+         DEFERRABLE
+);
+
+ALTER TABLE basket_item
+    ADD COLUMN rfq_note text default '';
+
 -- 1 down

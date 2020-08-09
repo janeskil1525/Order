@@ -1,14 +1,14 @@
 package Order::Model::Users;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
-use Daje::Model::User;
+use Order::Model::User;
 
 has 'pg';
 
 sub login {
 	my ($self, $user, $password) = @_;
 
-	return Daje::Model::User->new(pg => $self->pg)->login_light($user, $password);
+	return Order::Model::User->new(pg => $self->pg)->login_light($user, $password);
 }
 
 sub save {

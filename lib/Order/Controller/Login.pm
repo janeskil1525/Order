@@ -1,4 +1,4 @@
-package Matorit::Controller::Login;
+package Order::Controller::Login;
 use Mojo::Base 'Mojolicious::Controller';
 
 use Data::Dumper;
@@ -13,7 +13,7 @@ sub showlogin {
 sub login{
 	my $self = shift;
 
-	if($self->users->login($self->param('email'), $self->param('pass'))) {
+	if($self->users->login(Order::Helper::Settings, $self->param('pass'))) {
 		$self->session->{auth} = 1;
 		return $self->redirect_to('/app/menu/show');
 	}

@@ -1,48 +1,44 @@
 package Order::Helper::Shoppingcart;
-use Mojo::Base 'Mojolicious::Plugin';
+use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Mojo::JSON qw {decode_json encode_json};
-use Shoppingcart::Cart;
-use Daje::Utils::Settings;
+use Order::Helper::Shoppingcart::Cart;
+use Order::Helper::Settings;
 use Data::Dumper;
 #use Daje::Orion::Interface;
 
-our $VERSION = '0.45.1';
-
 has 'pg';
-has 'minion';
-has 'config';
 
-sub register {
+sub init {
 	my ($self, $app, $conf) = @_;
 
-	$self->pg($conf->{pg});
-	$self->minion($app->minion);
-	$self->config($app->config);
-
-	$app->helper(shoppingcart => sub {$self});
+	# $self->pg($conf->{pg});
+	# $self->minion($app->minion);
+	# $self->config($app->config);
+	#
+	# $app->helper(shoppingcart => sub {$self});
 }
 
 sub getOpenBasketId{
 	my ($self, $users_pkey) = @_;
 
-	my $cart = Shoppingcart::Cart->new(pg => $self->pg);
+	my $cart = Order::Helper::Shoppingcart::Cart->new(pg => $self->pg);
 
 	return $cart->getOpenBasketId($users_pkey);
 }
 
 sub openBasket{
-	my ($self, $token) = @_;
+	my ($self, $userid, $company) = @_;
 	
-	my $cart = Shoppingcart::Cart->new(pg => $self->pg);
+	my $cart = Order::Helper::Shoppingcart::Cart->new(pg => $self->pg);
 	
-	return $cart->openBasket($token);
+	return $cart->openBasket($userid, $company);
 }
 
 sub dropBasket{
 	my ($self, $basketid) = @_;
 	 
-	my $cart = Shoppingcart::Cart->new(pg => $self->pg);	
+	my $cart = Order::Helper::Shoppingcart::Cart->new(pg => $self->pg);
     my $result = $cart->dropBasket($basketid);
 	
 	return $result;
@@ -66,7 +62,7 @@ sub upsertItem{
 	
     my $data = decode_json($item);
     
-	my $cart = Shoppingcart::Cart->new(
+	my $cart = Order::Helper::Shoppingcart::Cart->new(
 		pg     => $self->pg,
 	);
     my $result = $cart->upsertItem($data);
@@ -78,7 +74,7 @@ sub saveBasket{
 	
     my $data = decode_json($item);
     
-	my $cart = Shoppingcart::Cart->new(
+	my $cart = Order::Helper::Shoppingcart::Cart->new(
 		pg => $self->pg,
 		);
     my $result = $cart->saveBasket($data);
@@ -91,7 +87,7 @@ sub checkOut{
 	
     my $data = decode_json($item);
     
-	my $cart = Shoppingcart::Cart->new(
+	my $cart = Order::Helper::Shoppingcart::Cart->new(
 		pg => $self->pg,
 		);
     my $result = $cart->saveBasket($data, 1);
@@ -104,7 +100,7 @@ sub checkOut{
 sub loadBasketFull{
     my($self, $basketid) = @_;
 	
-	my $cart = Shoppingcart::Cart->new(
+	my $cart = Order::Helper::Shoppingcart::Cart->new(
 		pg => $self->pg,
 		);
     my $result = $cart->loadBasketFull($basketid);
@@ -139,7 +135,7 @@ sub set_setdefault_item_data{
 sub setStatusOrder{
     my($self, $basketid) = @_;
     
-    my $cart = Shoppingcart::Cart->new(
+    my $cart = Order::Helper::Shoppingcart::Cart->new(
 		pg => $self->pg,
 		)->setStatusOrder($basketid);
 }

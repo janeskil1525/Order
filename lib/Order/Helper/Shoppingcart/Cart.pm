@@ -4,10 +4,10 @@ use Mojo::Base 'Daje::Utils::Sentinelsender';
 use Order::Helper::Shoppingcart::Check::CartData;
 use Order::Helper::Shoppingcart::Item;
 use Order::Helper::Shoppingcart::Address;
-use Daje::Utils::Selectnames;
-use Daje::Utils::Translations;
-use Daje::Model::User;
-use Daje::Utils::Addresses::Company;
+use Order::Helper::Selectnames;
+use Order::Helper::Translations;
+use Order::Model::User;
+#use Daje::Utils::Addresses::Company;
 
 use Try::Tiny;
 
@@ -17,7 +17,7 @@ has 'pg';
 sub getOpenBasketId{
     my ($self, $users_pkey) = @_;
 
-    my $result = try {
+    my $result = try{
         $self->pg->db->select(
         'basket',
         'basketid',
@@ -35,20 +35,17 @@ sub getOpenBasketId{
 }
 
 sub openBasket{
-    my ($self, $token) = @_;
-    
-    my $user = Daje::Model::User->new(pg => $self->pg);
-    my $users_company_pkey = $user->load_token_user_company_pkey($token)->hash;
+    my ($self, $userid, $company) = @_;
 
     my $result->{openitems} = try{ $self->pg->db->select(
                 ['basket',['basket_item', basket_fkey  => 'basket_pkey']],
                 ['basket_pkey'],
                 {
-                    users_fkey     => $users_company_pkey->{users_pkey},
-                    companies_fkey => $users_company_pkey->{companies_pkey},
-                    approved       => 'false',
-                    status         => 'NEW',
-                    quantity       => => {'>' => 0}
+                    userid          => $userid,
+                    company         => $company,
+                    approved        => 'false',
+                    status           => 'NEW',
+                    quantity        => {'>' => 0}
                 })->rows();
     }catch{
         $self->capture_message('','Shoppingcart::Cart::openBasket]', (ref $self), (caller(0))[3], $_);
@@ -197,7 +194,8 @@ sub setStatusOrder{
 
 sub saveBasket{
     my($self, $data, $checkout) = @_;
-
+    
+    
     my $check = Shoppingcart::Check::CartData->new();
     $data->{invoiceaddress} = $check->sanitizeAddress(
         $data->{invoiceaddress}

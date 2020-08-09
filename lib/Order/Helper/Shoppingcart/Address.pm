@@ -1,8 +1,8 @@
-package Shoppingcart::Address;
+package Order::Helper::Shoppingcart::Address;
 use Mojo::Base 'Daje::Utils::Sentry::Raven';
 
 use Try::Tiny;
-use Daje::Utils::Addresses::Company;
+#use Daje::Utils::Addresses::Company;
 
 has 'pg';
 
@@ -59,7 +59,7 @@ sub loadAddress{
 sub default_address{
 	my ($self, $company_pkey) = @_;
 
-	return Daje::Utils::Addresses::Company->new(pg => $self->pg)->load_address($company_pkey);
+	#return Daje::Utils::Addresses::Company->new(pg => $self->pg)->load_address($company_pkey);
 }
 
 sub updateAddress{

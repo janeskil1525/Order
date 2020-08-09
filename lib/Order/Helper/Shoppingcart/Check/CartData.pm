@@ -1,4 +1,4 @@
-package Shoppingcart::Check::CartData;
+package Order::Helper::Shoppingcart::Check::CartData;
 
 use Mojo::Base -base;
 

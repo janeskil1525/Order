@@ -4,12 +4,15 @@ use Mojo::Base 'Mojolicious';
 use Order::Model::Menu;
 use Order::Model::Users;
 use Order::Model::Companies;
+use Order::Helper::Shoppingcart;
+
 use Mojo::Pg;
 use Mojo::JSON qw{encode_json from_json};
 use Mojo::File;
 use File::Share;
 
-$ENV{ORDER_HOME} = '/home/jan/Project/Order/'
+#$ENV{ORDER_HOME} = '/home/jan/Project/Order/'
+$ENV{ORDER_HOME} = 'G:/Project/Order/'
     unless $ENV{ORDER_HOME};
 
 has dist_dir => sub {
@@ -38,6 +41,7 @@ sub startup {
   $self->helper(users => sub { state $users = Order::Model::Users->new(pg => shift->pg)});
   $self->helper(companies => sub { state $users = Order::Model::Companies->new(pg => shift->pg)});
   $self->helper(order => sub { state $order = Order::Helper::Order::Order->new(pg => shift->pg)});
+  $self->helper(shoppingcart => sub { state $shoppingcart = Order::Helper::Shoppingcart->new(pg => shift->pg)});
 
   say $self->pg->db->query('select version() as version')->hash->{version};
 
@@ -50,7 +54,7 @@ sub startup {
 
   $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-  )->migrate(1);
+  )->migrate(2);
 
   my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp
@@ -73,6 +77,18 @@ sub startup {
 
     return 1 if ($c->session('auth') // '') eq '1';
     $c->redirect_to('/');
+    return undef;
+  } );
+
+
+  my $auth_api = $self->routes->under( '/api', sub {
+    my ( $c ) = @_;
+
+    return 1;
+    #return 1 if $c->user->authenticate($c->req->headers->header('X-Token-Check'));
+    # Not authenticated
+    $c->render(json => '{"error":"unknown error"}');
+    return undef;
     return undef;
   } );
 
@@ -106,7 +122,7 @@ sub startup {
           backend     => {Pg => $self->pg},
           schema      => $schema,
           read_schema => 0,
-          return_to   => '/app/menu/show/',
+          'editor.return_to'   => '/app/menu/show/',
           'editor.require_user' => undef,
       }
   );
@@ -121,11 +137,26 @@ sub startup {
   $auth_route->get('/companies/list/')->to('companies#list');
   $auth_route->get('/users/list/')->to('users#list');
 
-  $r->get('/v1/orders/purchase/')->to('orders#list_purchaseorders');
-  $r->get('/v1/orders/sales/')->to('orders#list_salesorders');
-  $r->get('/v1/orders/item/load/')->to('orders#load_item_api');
-  $r->get('/v1/orders/load/purchase/:orders_pkey')->to('orders#load_purchase_order_api');
-  $r->get('/v1/orders/load/sales/:orders_pkey')->to('orders#load_sales_order_api');
+  $auth_api->get('/v1/orders/purchase/')->to('orders#list_purchaseorders');
+  $auth_api->get('/v1/orders/sales/')->to('orders#list_salesorders');
+  $auth_api->get('/v1/orders/item/load/')->to('orders#load_item_api');
+  $auth_api->get('/v1/orders/load/purchase/:orders_pkey')->to('orders#load_purchase_order_api');
+  $auth_api->get('/v1/orders/load/sales/:orders_pkey')->to('orders#load_sales_order_api');
+
+  $auth_api->post('/v1/basket/upsertitem/')->to("basket#upsertitem");
+  $auth_api->get('/v1/vehicle/getforregplate:regplate')->to("basket#getforregplate");
+  $auth_api->get('/v1/basket/load/:basketid')->to('basket#load_basket');
+
+  $auth_api->get('/v1/basket/open/:userid/:company')->to('basket#open_basket');
+
+  $auth_api->get('/v1/basket/items/:itemtype')->to('basket#list_basket_items_itemtype_api');
+  $auth_api->get('/v1/basket/item/load/:basket_item_pkey')->to('basket#basket_items_load_api');
+  $auth_api->post('/v1/basket/checkout/')->to('basket#checkout');
+
+  $auth_api->get('/v1/rfqs/list/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_api');
+  $auth_api->get('/v1/rfqs/load/:rfqs_pkey')->to('rfqs#load_rfq_api');
+  $auth_api->post('/v1/rfqs/save/')->to('rfqs#save_rfq_api');
+  $auth_api->post('/v1/rfqs/send/')->to('rfqs#send_rfq_api');
 
 }
 

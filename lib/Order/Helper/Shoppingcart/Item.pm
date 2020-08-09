@@ -1,8 +1,8 @@
-package Shoppingcart::Item;
+package Order::Helper::Shoppingcart::Item;
 use Mojo::Base "Daje::Utils::Sentinelsender";
 
-use Daje::Model::Data::Reservation;
-use Daje::Warehouse::Stockmanager;
+#use Daje::Model::Data::Reservation;
+#use Daje::Warehouse::Stockmanager;
 use Daje::Utils::Postgres::Columns;
 use Data::Dumper;
 
@@ -43,8 +43,8 @@ sub upsertItem{
 			itemno => $data->{itemno},
 			price => $data->{price},
 			description => $data->{description},
-			supplier_fkey => $data->{supplier_fkey},
-			stockitems_fkey => $data->{stockitems_fkey},
+			supplier => $data->{supplier},
+			externalref => $data->{stockitems_fkey},
 			freight => $data->{freight},
 			rfq_note => $data->{rfq_note}},
 			{
@@ -56,26 +56,26 @@ sub upsertItem{
 			}
 		)->hash;
 
-	if(exists $data->{stockitems_fkey} and $data->{stockitems_fkey} > 0){
-		my $reservation = Daje::Model::Data::Reservation->new(
-			stockitems_pkey       => $data->{stockitems_fkey},
-			quantity              => $data->{quantity} * -1,
-			reservation_type      => 1,
-			reservation_reference => $data->{description},
-			companies_pkey        => $data->{supplier_fkey},
-			source_fkey           => $result->{basket_item_pkey},
-		);
-
-		if($data->{quantity} == 0){
-			Daje::Warehouse::Stockmanager->new(
-				pg => $self->pg
-			)->delete_reservation($reservation);
-		}else{
-			Daje::Warehouse::Stockmanager->new(
-				pg => $self->pg
-			)->add_reservation($reservation);
-		}
-	}
+	# if(exists $data->{stockitems_fkey} and $data->{stockitems_fkey} > 0){
+	# 	my $reservation = Daje::Model::Data::Reservation->new(
+	# 		stockitems_pkey       => $data->{stockitems_fkey},
+	# 		quantity              => $data->{quantity} * -1,
+	# 		reservation_type      => 1,
+	# 		reservation_reference => $data->{description},
+	# 		companies_pkey        => $data->{supplier_fkey},
+	# 		source_fkey           => $result->{basket_item_pkey},
+	# 	);
+	#
+	# 	if($data->{quantity} == 0){
+	# 		Daje::Warehouse::Stockmanager->new(
+	# 			pg => $self->pg
+	# 		)->delete_reservation($reservation);
+	# 	}else{
+	# 		Daje::Warehouse::Stockmanager->new(
+	# 			pg => $self->pg
+	# 		)->add_reservation($reservation);
+	# 	}
+	# }
 
 	return $result;
 }

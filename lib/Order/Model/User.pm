@@ -1,4 +1,4 @@
-package Daje::Model::User;
+package Order::Model::User;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 our $VERSION = '0.3.6';

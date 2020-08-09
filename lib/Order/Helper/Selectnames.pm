@@ -1,9 +1,9 @@
-package Daje::Utils::Selectnames;
-
+package Order::Helper::Selectnames;
 use Mojo::Base -base;
+
 use Mojo::JSON qw{from_json};
 use Data::Dumper;
-our $VERSION = '0.3.4';
+
 
 sub get_select_names_json{
 	my ($self, $json_field, $fields_list) = @_;
@@ -38,3 +38,5 @@ sub get_select_names{
 	$selectnames = substr($selectnames, 0, -1);
 	return $selectnames;
 }
+
+1;

@@ -1,11 +1,9 @@
-package Daje::Utils::Translations;
+package Order::Helper::Translations;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Try::Tiny;
 use Mojo::JSON qw{from_json};
 use Data::Dumper;
-
-our $VERSION = '0.3.2';
 
 has 'pg';
 
@@ -118,6 +116,5 @@ sub get_query{
 	
 	return $stmt;
 }
-
 
 1;

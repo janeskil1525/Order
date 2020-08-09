@@ -4,12 +4,22 @@ use Mojo::Base 'Mojolicious::Controller';
 use Mojo::JSON qw{decode_json};
 use Data::Dumper;
 use Daje::Utils::Sentinelsender;
+use Data::UUID;
+
+sub basketid {
+
+
+    my $ug = Data::UUID->new;
+    my $token = $ug->create();
+    $token = $ug->to_string($token);
+}
 
 sub open_basket{
     my $self = shift;
-     
-    my $token = $self->req->headers->header('X-Token-Check');
-    my $result = $self->shoppingcart->openBasket($token);
+
+    my $userid ) $self->param('userid');
+    my $company = $self->param('company');
+    my $result = $self->shoppingcart->openBasket($userid, $company);
     
     $self->render(json => $result);
 }

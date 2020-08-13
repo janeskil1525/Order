@@ -17,9 +17,10 @@ sub basketid {
 sub open_basket{
     my $self = shift;
 
-    my $userid ) $self->param('userid');
-    my $company = $self->param('company');
-    my $result = $self->shoppingcart->openBasket($userid, $company);
+    my $body = $self->req->body;
+    my $data = decode_json($body);
+
+    my $result = $self->shoppingcart->openBasket($data->{userid}, $data->{company});
     
     $self->render(json => $result);
 }

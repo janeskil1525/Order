@@ -12,12 +12,11 @@ sub details_headers{
 	
 	my $translation_list = $self->get_translation_list($module, $field_list, $lan);
 	my $length = scalar @{$translation_list};
-	
 	my $details;
 	if($length){
 		foreach my $field (@{$field_list}){
-
 			$details->{$field->{setting_value}}->{value} = $data->{$field->{setting_value}};
+			$details->{$field->{setting_value}}->{field} = $field->{setting_value};
 			$details->{$field->{setting_value}}->{order} = $field->{setting_order};
 			$details->{$field->{setting_value}}->{properties} = '';
 			if(exists $field->{setting_properties} and $field->{setting_properties}){

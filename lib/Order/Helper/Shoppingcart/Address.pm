@@ -1,10 +1,11 @@
 package Order::Helper::Shoppingcart::Address;
-use Mojo::Base 'Daje::Utils::Sentry::Raven';
+use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Try::Tiny;
 #use Daje::Utils::Addresses::Company;
 
 has 'pg';
+has 'db';
 
 sub dropAddresses{
 	my ($self, $basket_pkey) = @_;
@@ -32,7 +33,7 @@ sub dropAddresses{
 }
 
 sub loadAddress{
-	my ($self, $basket_pkey, $type, $addressfields, $company_pkey) = @_;
+	my ($self, $basket_pkey, $type, $addressfields) = @_;
 	
 	my $result = try{
 		$self->pg->db->select(
@@ -49,23 +50,20 @@ sub loadAddress{
 		return ;
 	};
 	
-	if($type eq 'Invoice'){
-		$result = $self->default_address($company_pkey) unless $result;
-	}
-	
 	return $result;
-}
-
-sub default_address{
-	my ($self, $company_pkey) = @_;
-
-	#return Daje::Utils::Addresses::Company->new(pg => $self->pg)->load_address($company_pkey);
 }
 
 sub updateAddress{
 	my ($self, $basket_addresses_fkey, $address, $type) = @_;
-	
-	$self->pg->db->update('basket_addresses',{
+
+	my $db;
+	if($self->db){
+		$db = $self->db
+	} else {
+		$db = $self->pg->db;
+	}
+
+	$db->update('basket_addresses',{
 		name => $address->{name},
 		address1 => $address->{address1},
 		address2 => $address->{address2},
@@ -81,8 +79,13 @@ sub updateAddress{
 sub upsertAddress{
 	my ($self, $basket_pkey, $address, $type) = @_;
 	
-	
-	my $basket_addresses_pkey = $self->pg->db->insert('basket_addresses',{
+	my $db;
+	if($self->db) {
+		$db = $self->db;
+	} else {
+		$db = $self->pg->db;
+	}
+	my $basket_addresses_pkey = $db->insert('basket_addresses',{
 		name => $address->{name},
 		address1 => $address->{address1},
 		address2 => $address->{address2},
@@ -94,7 +97,7 @@ sub upsertAddress{
 		})->hash->{basket_addresses_pkey};
 	
 	my $result = try {
-		$self->pg->db->insert('basket_addresses_basket',{
+		$db->insert('basket_addresses_basket',{
 			address_type => $type,
 			basket_fkey => $basket_pkey,
 			basket_addresses_fkey => $basket_addresses_pkey
@@ -109,8 +112,14 @@ sub upsertAddress{
 
 sub addressExists{
 	my ($self, $basket_pkey, $type) = @_;
-	
-	my $basket_addresses_fkey = $self->pg->db->select(
+
+	my $db;
+	if($self->db){
+		$db = $self->db
+	} else {
+		$db = $self->pg->db;
+	}
+	my $basket_addresses_fkey = $db->select(
 						'basket_addresses_basket',
 						  ['basket_addresses_fkey'],
 						  {'basket_fkey' => $basket_pkey,

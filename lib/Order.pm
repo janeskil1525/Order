@@ -3,16 +3,15 @@ use Mojo::Base 'Mojolicious';
 
 use Order::Model::Menu;
 use Order::Model::Users;
-use Order::Model::Companies;
 use Order::Helper::Shoppingcart;
+use Order::Helper::Shoppingcart::Converter;
 
 use Mojo::Pg;
 use Mojo::JSON qw{encode_json from_json};
 use Mojo::File;
 use File::Share;
 
-#$ENV{ORDER_HOME} = '/home/jan/Project/Order/'
-$ENV{ORDER_HOME} = 'G:/Project/Order/'
+$ENV{ORDER_HOME} = '/home/jan/Project/Order/'
     unless $ENV{ORDER_HOME};
 
 has dist_dir => sub {
@@ -36,12 +35,13 @@ sub startup {
   $self->secrets($config->{secrets});
   $self->helper(pg => sub {state $pg = Mojo::Pg->new->dsn(shift->config('pg'))});
   $self->log->path($self->home() . $self->config('log'));
-
   $self->helper(menu => sub { state $menu = Order::Model::Menu->new(pg => shift->pg)});
   $self->helper(users => sub { state $users = Order::Model::Users->new(pg => shift->pg)});
-  $self->helper(companies => sub { state $users = Order::Model::Companies->new(pg => shift->pg)});
-  $self->helper(order => sub { state $order = Order::Helper::Order::Order->new(pg => shift->pg)});
+  $self->helper(order => sub { state $order = Order::Helper::Order->new(pg => shift->pg)});
   $self->helper(shoppingcart => sub { state $shoppingcart = Order::Helper::Shoppingcart->new(pg => shift->pg)});
+  $self->shoppingcart->config($self->config);
+  $self->helper(converter => sub { state $converter = Order::Helper::Shoppingcart::Converter->new(pg => shift->pg)});
+
 
   say $self->pg->db->query('select version() as version')->hash->{version};
 
@@ -54,7 +54,7 @@ sub startup {
 
   $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-  )->migrate(2);
+  )->migrate(12);
 
   my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp
@@ -62,6 +62,8 @@ sub startup {
 
   $self->plugin('Minion'  => { Pg => $self->pg });
   $self->plugin('Subscription');
+
+  $self->converter->init($self->minion);
 
   # Router
   my $auth_route = $self->routes->under( '/app', sub {
@@ -147,7 +149,7 @@ sub startup {
   $auth_api->get('/v1/vehicle/getforregplate:regplate')->to("basket#getforregplate");
   $auth_api->get('/v1/basket/load/:basketid')->to('basket#load_basket');
 
-  $auth_api->get('/v1/basket/open/:userid/:company')->to('basket#open_basket');
+  $auth_api->post('/v1/basket/open/')->to('basket#open_basket');
 
   $auth_api->get('/v1/basket/items/:itemtype')->to('basket#list_basket_items_itemtype_api');
   $auth_api->get('/v1/basket/item/load/:basket_item_pkey')->to('basket#basket_items_load_api');

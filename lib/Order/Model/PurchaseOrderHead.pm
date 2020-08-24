@@ -1,12 +1,12 @@
-package Order::Model::OrderHead;
-use Mojo::Base 'Daje::Utils::Sentry::Raven';
+package Order::Model::PurchaseOrderHead;
+use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Mojo::JSON qw {decode_json };
-use Daje::Utils::Selectnames;
-use Daje::Model::OrderAddresses;
-use Daje::Model::OrderCompanies;
+use Order::Helper::Selectnames;
+use Order::Model::OrderAddresses;
+
 use Daje::Utils::Postgres::Columns;
-use Daje::Utils::User;
+
 use Try::Tiny;
 use Data::Dumper;
 
@@ -62,7 +62,7 @@ sub loadOpenOrderList{
 }
 
 sub upsertHead{
-    my ($self, $data, $ordertype, $supplier) = @_;
+    my ($self, $data, $ordertype, $item) = @_;
 
     $data->{order_no} = $self->getOrderNo()
         unless exists $data->{order_no} and $data->{order_no} > 0;
@@ -70,53 +70,36 @@ sub upsertHead{
     my $updates;
     $updates->{order_type} = $ordertype;
     $updates->{order_no} = $data->{order_no};
-
-    if($ordertype == 1){
-        $updates->{company} = $data->{details}->{company};
-        $updates->{userid} = $data->{details}->{userid};
-    }elsif($ordertype == 2){
-        $updates->{company} = $supplier;
-        $updates->{userid} = $data->{supplier}->{sales_mails};
-    }
-
+    $updates->{company} = $data->{details}->{company};
+    $updates->{userid} = $data->{details}->{userid};
+    $updates->{name} = $item->{name};
+    $updates->{registrationnumber} = $item->{registrationnumber};
+    $updates->{phone} = $item->{phone};
+    $updates->{homepage} = $item->{homepage};
+    $updates->{address1} = $item->{address1};
+    $updates->{address2} = $item->{address2};
+    $updates->{address3} = $item->{address3};
+    $updates->{zipcode} = $item->{zipcode};
+    $updates->{city} = $item->{city};
+    $updates->{company_mails} = $item->{company_mails};
+    $updates->{sales_mails} = $item->{sales_mails};
+    $updates->{externalref} = $data->{details}->{basketid};
+    $updates->{supplier} = $item->{supplier};
 
     my $order_head_pkey = try{
         $self->pg->db->insert(
-            'order_head', $updates,
+            'purchase_order_head', $updates,
             {
                 on_conflict => \[' (order_no) Do update set moddatetime = ?', 'now()'],
-                returning => 'order_head_pkey'
+                returning => 'purchase_order_head_pkey'
             }
-        )->hash->{order_head_pkey};
+        )->hash->{purchase_order_head_pkey};
     }catch{
         $self->capture_message("[Daje::Model::OrderHead::upsertHead] " . $_);
         say "[Daje::Model::OrderHead::upsertHead] " . @_;
     };
 
-    if($ordertype == 1){
-        $self->connectBasket($data, $order_head_pkey);
-        $self->setSupplierAddresses($order_head_pkey, $supplier);
-        $self->setOrderCompanies($order_head_pkey, $supplier, 'Supplier');
-    }elsif($ordertype == 2){
-        $self->setCustomerAddresses($order_head_pkey, $data);
-        $self->setOrderCompanies($order_head_pkey, $data->{details}->{companies_fkey},'Customer');
-    }
     return $order_head_pkey;
-}
-
-sub setOrderCompanies{
-    my ($self, $order_head_pkey, $companies_pkey, $type) = @_;
-
-    try{
-        Daje::Model::OrderCompanies->new(
-            pg => $self->pg
-        )->setOrderCompanies(
-            $order_head_pkey, $companies_pkey, $type
-        );
-    }catch{
-        $self->capture_message("[Daje::Model::OrderHead::setOrderCompanies] " . $_);
-        say "[Daje::Model::OrderHead::setOrderCompanies] " . @_;
-    };
 }
 
 sub setSupplierAddresses{
@@ -147,21 +130,6 @@ sub getSalesUser{
         pg => $self->pg
     )->getSalesUser($suppliers_pkey);
     return $users_pkey;
-}
-
-sub connectBasket{
-    my ($self, $data, $order_head_pkey) = @_;
-
-    if(exists $data->{details}->{basket_pkey}){
-
-        $self->pg->db->insert('order_basket',
-            {
-                order_head_fkey => $order_head_pkey,
-                basket_fkey => $data->{details}->{basket_pkey},
-            },{
-                on_conflict => undef,
-            });
-    }
 }
 
 sub getOrderNo{

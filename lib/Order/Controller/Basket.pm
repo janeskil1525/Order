@@ -48,7 +48,7 @@ sub upsertitem{
 sub savebasket{
     my $self = shift;
     
-    my $data = $self->req->body;
+    my $data = $self->req->body->json;
     my $result = $self->shoppingcart->saveBasket($data);
     $self->render(json => {result => $result});    
 }
@@ -57,7 +57,8 @@ sub checkout{
     my $self = shift;
     
     my $data = $self->req->body;
-    my $result = $self->shoppingcart->checkOut($data);
+    my $hash = decode_json($data);
+    my $result = $self->shoppingcart->checkOut($hash);
     $self->render(json => {result => $result});    
 }
 
@@ -73,10 +74,9 @@ sub load_basket{
     my $self = shift;
     
     my $basketid = $self->param('basketid');
-    say $basketid;
-    
-    my $token = $self->req->headers->header('X-Token-Check');
-    my $response = $self->shoppingcart->loadBasket($basketid, $token);
+
+    my $response = $self->shoppingcart->loadBasket($basketid);
+
     $self->render(json => {basket => $response});
     
 }

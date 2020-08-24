@@ -5,8 +5,10 @@ use Mojo::Base "Daje::Utils::Sentinelsender";
 #use Daje::Warehouse::Stockmanager;
 use Daje::Utils::Postgres::Columns;
 use Data::Dumper;
+use Try::Tiny;
 
 has 'pg';
+has 'db';
 
 
 sub dropItems{
@@ -26,16 +28,45 @@ sub getItems{
 	})->hashes;
 }
 
+sub getItemsFull {
+	my ($self, $basket_pkey) = @_;
+
+	my $result = try {
+			$self->pg->db->query(
+			qq{
+				SELECT
+					itemtype, itemno, stockitem, description, quantity, price, freight
+					suppliers_pkey, company, name, registrationnumber, phone, homepage, address1, address2, address3,
+					zipcode, city, company_mails, sales_mails, suppliers_pkey, company as supplier
+				FROM basket_item, suppliers
+				WHERE basket_item_fkey = basket_item_pkey AND quantity > 0 and basket_fkey = ?
+			},
+			($basket_pkey)
+		)->hashes;
+	} catch {
+		say $_;
+		$self->capture_message('','Order::Helper::Shoppingcart::Item::getItemsFull', (ref $self), (caller(0))[3], $_);
+	};
+
+	return $result;
+
+}
 sub upsertItem{
 	my ($self, $data) = @_;
 
+	my $db;
+	if ($self->db){
+		$db = $self->db;
+	} else {
+		$db = $self->pg->db;
+	}
 	$data->{rfq_note} = '' unless $data->{rfq_note};
-	$data->{itemno} = $self->pg->db->query(
+	$data->{itemno} = $db->query(
 		qq{SELECT COALESCE(MAX(itemno), 0) + 1  as itemno FROM basket_item WHERE basket_fkey = ? },
 			$data->{basket_pkey})->hash->{itemno}
 	unless $data->{itemno};
 
-	my $result = $self->pg->db->insert(
+	my $result = $db->insert(
 		'basket_item', {
 			basket_fkey => $data->{basket_pkey},
 			stockitem => $data->{stockitem},
@@ -43,18 +74,55 @@ sub upsertItem{
 			itemno => $data->{itemno},
 			price => $data->{price},
 			description => $data->{description},
-			supplier => $data->{supplier},
+			supplier => $data->{supplier}->{company}->{company},
 			externalref => $data->{stockitems_fkey},
 			freight => $data->{freight},
 			rfq_note => $data->{rfq_note}},
 			{
 				on_conflict => \[
-					'(basket_fkey, itemno) do update set quantity = ?, rfq_note = ?, freight = ?',
+					'(basket_fkey, stockitem) do update set quantity = ?, rfq_note = ?, freight = ?',
 						($data->{quantity}, $data->{rfq_note}, $data->{freight})
 				],
 				returning   => 'basket_item_pkey',
 			}
 		)->hash;
+
+	$db->insert('suppliers',
+		{
+			company => $data->{supplier}->{company}->{company},
+			name => $data->{supplier}->{company}->{name},
+			registrationnumber => $data->{supplier}->{company}->{registrationnumber},
+			phone => $data->{supplier}->{company}->{phone},
+			homepage => $data->{supplier}->{company}->{homepage},
+			address1 => $data->{supplier}->{address}->{address1},
+			address2 => $data->{supplier}->{address}->{address2},
+			address3 => $data->{supplier}->{address}->{address3},
+			zipcode => $data->{supplier}->{address}->{zipcode},
+			city => $data->{supplier}->{address}->{city},
+			company_mails => $data->{supplier}->{company_mails},
+			sales_mails => $data->{supplier}->{sales_mails},
+			basket_item_fkey  => $result->{basket_item_pkey},
+		},
+		 {
+		 	on_conflict => [
+				['basket_item_fkey'] => {
+		 			moddatetime => 'now()',
+		 			company => $data->{supplier}->{company}->{company},
+		 			name => $data->{supplier}->{company}->{name},
+					registrationnumber => $data->{supplier}->{company}->{registrationnumber},
+		 			phone => $data->{supplier}->{company}->{phone},
+		 			homepage => $data->{supplier}->{company}->{homepage},
+					address1 => $data->{supplier}->{address}->{address1},
+					address2 => $data->{supplier}->{address}->{address2},
+					address3 => $data->{supplier}->{address}->{address3},
+					zipcode => $data->{supplier}->{address}->{zipcode},
+					city => $data->{supplier}->{address}->{city},
+					company_mails => $data->{supplier}->{company_mails},
+		 			sales_mails => $data->{supplier}->{sales_mails},,
+		 		}
+			]
+		 }
+	);
 
 	# if(exists $data->{stockitems_fkey} and $data->{stockitems_fkey} > 0){
 	# 	my $reservation = Daje::Model::Data::Reservation->new(

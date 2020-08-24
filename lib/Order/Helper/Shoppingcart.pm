@@ -4,10 +4,12 @@ use Mojo::Base 'Daje::Utils::Sentinelsender';
 use Mojo::JSON qw {decode_json encode_json};
 use Order::Helper::Shoppingcart::Cart;
 use Order::Helper::Settings;
+use Order::Helper::Order;
 use Data::Dumper;
 #use Daje::Orion::Interface;
 
 has 'pg';
+has 'config';
 
 sub init {
 	my ($self, $app, $conf) = @_;
@@ -45,13 +47,13 @@ sub dropBasket{
 }
 
 sub loadBasket{
-	my ($self, $basketid, $token) = @_;
+	my ($self, $basketid) = @_;
 	
-	my $settings = Daje::Utils::Settings->new(pg => $self->pg);
-	my $grid_fields_list = $settings->get_settings_list('Basket_grid_fields', $token);
-	my $details_fields_list = $settings->get_settings_list('Basket_details_fields', $token);
-	my $address_fields_list = $settings->get_settings_list('Basket_address_fields', $token);
-	my $cart = Shoppingcart::Cart->new(pg => $self->pg);	
+	my $settings = Order::Helper::Settings->new(pg => $self->pg);
+	my $grid_fields_list = $settings->get_settings_list('Basket_grid_fields' );
+	my $details_fields_list = $settings->get_settings_list('Basket_details_fields' );
+	my $address_fields_list = $settings->get_settings_list('Basket_address_fields' );
+	my $cart = Order::Helper::Shoppingcart::Cart->new(pg => $self->pg);
     my $result = $cart->loadBasket($basketid, $grid_fields_list, $details_fields_list, $address_fields_list);
 	
 	return $result;
@@ -61,49 +63,35 @@ sub upsertItem{
     my ($self, $item) = @_;
 	
     my $data = decode_json($item);
-    
+
 	my $cart = Order::Helper::Shoppingcart::Cart->new(
 		pg     => $self->pg,
+		config => $self->config,
 	);
     my $result = $cart->upsertItem($data);
 	return $result;
 }
 
 sub saveBasket{
-    my ($self, $item) = @_;
-	
-    my $data = decode_json($item);
-    
-	my $cart = Order::Helper::Shoppingcart::Cart->new(
+    my ($self, $data) = @_;
+
+	my $result = Order::Helper::Shoppingcart::Cart->new(
 		pg => $self->pg,
-		);
-    my $result = $cart->saveBasket($data);
+	)->saveBasket($data);
    
 	return $result;
 }
 
 sub checkOut{
-    my ($self, $item) = @_;
-	
-    my $data = decode_json($item);
-    
-	my $cart = Order::Helper::Shoppingcart::Cart->new(
-		pg => $self->pg,
-		);
-    my $result = $cart->saveBasket($data, 1);
-    my $json_result = encode_json($result);
-	$self->minion->enqueue('create_orders' => [$json_result] => {priority => 0});
-	
-	return $result;
-}
+    my ($self, $data) = @_;
 
-sub loadBasketFull{
-    my($self, $basketid) = @_;
-	
-	my $cart = Order::Helper::Shoppingcart::Cart->new(
+	my $result = Order::Helper::Shoppingcart::Cart->new(
 		pg => $self->pg,
-		);
-    my $result = $cart->loadBasketFull($basketid);
+	)->saveBasket($data, $data->{approved});
+	if($data->{approved}) {
+		$self->minion->enqueue('create_orders' => [$result] => {priority => 0});
+	}
+
 	
 	return $result;
 }
@@ -111,7 +99,7 @@ sub loadBasketFull{
 sub list_basket_items_itemtype_p{
 	my($self, $itemtype, $token) = @_;
 
-	return Shoppingcart::Item->new(
+	return Order::Helper::Shoppingcart::Item->new(
 		pg => $self->pg,
 	)->list_basket_items_itemtype_p($itemtype, $token);
 
@@ -119,7 +107,7 @@ sub list_basket_items_itemtype_p{
 sub basket_items_load_p{
 	my($self, $basket_item_pkey) = @_;
 
-	return Shoppingcart::Item->new(
+	return Order::Helper::Shoppingcart::Item->new(
 		pg => $self->pg,
 	)->basket_items_load_p($basket_item_pkey);
 }
@@ -127,18 +115,11 @@ sub basket_items_load_p{
 sub set_setdefault_item_data{
 	my($self, $data) = @_;
 
-	return Daje::Order::Order->new(
+	return Order::Helper::Order->new(
 		pg => $self->pg
 	)->set_setdefault_item_data($data);
 }
 
-sub setStatusOrder{
-    my($self, $basketid) = @_;
-    
-    my $cart = Order::Helper::Shoppingcart::Cart->new(
-		pg => $self->pg,
-		)->setStatusOrder($basketid);
-}
 1;
 
 __END__

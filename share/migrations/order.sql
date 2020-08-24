@@ -62,6 +62,7 @@ create table if not exists basket
 CREATE INDEX idx_basket_userid ON basket(userid);
 CREATE INDEX idx_basket_company ON basket(company);
 
+DROP SEQUENCE IF EXISTS orderno;
 CREATE SEQUENCE orderno START 10000;
 
 create table if not exists order_head
@@ -485,3 +486,368 @@ ALTER TABLE basket_item ADD COLUMN freight numeric(15, 2) not null default 0;
 
 -- 2 down
 
+-- 3 up
+CREATE TABLE if not exists settings
+(
+    settings_pkey serial NOT NULL,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System'::character varying,
+    insdatetime timestamp without time zone NOT NULL DEFAULT now(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System'::character varying,
+    moddatetime timestamp without time zone NOT NULL DEFAULT now(),
+    setting_name character varying(200) COLLATE pg_catalog."default" NOT NULL DEFAULT ''::character varying,
+    CONSTRAINT settings_pkey PRIMARY KEY (settings_pkey)
+        USING INDEX TABLESPACE webshop
+) ;
+
+CREATE TABLE if not exists default_settings_values
+(
+    default_settings_values_pkey serial NOT NULL,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System'::character varying,
+    insdatetime timestamp without time zone NOT NULL DEFAULT now(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System'::character varying,
+    moddatetime timestamp without time zone NOT NULL DEFAULT now(),
+    settings_fkey bigint NOT NULL,
+    setting_no BIGINT NOT NULL DEFAULT 0,
+    setting_value TEXT NOT NULL DEFAULT '',
+    setting_order BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT default_settings_values_pkey PRIMARY KEY (default_settings_values_pkey)
+        USING INDEX TABLESPACE webshop,
+    CONSTRAINT default_settings_values_settings_fkey FOREIGN KEY (settings_fkey)
+        REFERENCES settings (settings_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE
+) ;
+
+CREATE UNIQUE INDEX if not exists idx_settings_fkey_setting_no_companies_fkey_users_fkey
+    ON default_settings_values USING btree
+        (settings_fkey,setting_no);
+
+ALTER TABLE default_settings_values
+    ADD COLUMN setting_properties VARCHAR NOT NULL DEFAULT '';
+
+INSERT INTO settings (settings_pkey, setting_name) VALUES (4, 'Basket_grid_fields');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
+values (4, 1, 'basket_item_pkey', 0, '{"visible":"false"}');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
+values (4, 2, 'itemtype', 0, '{"visible":"false"}');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
+values (4, 3, 'itemno', 1,'{"visible":"true"}');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
+values (4, 4, 'stockitem', 2,'{"visible":"true"}');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
+values (4, 5, 'description', 3,'{"visible":"true"}');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
+values (4, 6, 'quantity', 4,'{"visible":"true"}');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
+values (4, 7, 'price', 5,'{"visible":"true"}');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
+values (4, 8, 'expirydate', 0, '{"visible":"false"}');
+
+INSERT INTO settings (settings_pkey, setting_name) VALUES (5, 'Basket_details_fields');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value) values (5, 1, 'basket_pkey');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value) values (5, 2, 'basketid');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value) values (5, 3, 'approved');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value) values (5, 4, 'status');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value) values (5, 5, 'payment');
+
+
+INSERT INTO settings (settings_pkey, setting_name) VALUES (6, 'Basket_address_fields');
+
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order)
+values (6, 1, 'basket_addresses_pkey',0);
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order)
+values (6, 2, 'name',1);
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order)
+values (6, 3, 'address1',2);
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order)
+values (6, 4, 'address2',3);
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order)
+values (6, 5, 'address3',4);
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order)
+values (6, 6, 'city',5);
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order)
+values (6, 7, 'zipcode',6);
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order)
+values (6, 8, 'country',7);
+
+-- 3 down
+-- 4 up
+
+ALTER TABLE default_settings_values
+    ADD COLUMN setting_backend_properties VARCHAR NOT NULL DEFAULT '';
+
+-- 4 down
+
+-- 5 up
+create table if not exists last_used_basket_addresses
+(
+    last_used_basket_addresses_pkey serial not null,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    name varchar(200) default '',
+    address1 varchar(200) default '',
+    address2 varchar(200) default '',
+    address3 varchar(200) default '',
+    city varchar(200) default '',
+    zipcode varchar(200) default '',
+    country varchar(30) default '',
+    userid varchar(100) not null,
+    company varchar(100) not null,
+    address_type varchar NOT NULL DEFAULT 'Invoice',
+    CONSTRAINT last_used_basket_addresses_pkey PRIMARY KEY (last_used_basket_addresses_pkey)
+);
+
+CREATE UNIQUE INDEX idx_last_used_basket_addresses_userid_company_address_type
+    ON last_used_basket_addresses(userid, company, address_type);
+
+-- 5 down
+
+-- 6 up
+INSERT INTO translations (languages_fkey, module, tag, translation) VALUES
+(6, 'Basket_details_fields', 'basketid','Korgid'),
+(6, 'Basket_details_fields', 'approved','Godkännd'),
+(6, 'Basket_details_fields', 'status','Status'),
+(6, 'Basket_details_fields', 'payment','Betalsätt');
+
+-- 6 down
+
+-- 7 up
+INSERT INTO translations (languages_fkey, module, tag, translation) VALUES
+(6, 'Basket_address_fields', 'address1','Adress 1'),
+(6, 'Basket_address_fields', 'address2','Adress 2'),
+(6, 'Basket_address_fields', 'address3','Adress 3'),
+(6, 'Basket_address_fields', 'city','Postort'),
+(6, 'Basket_address_fields', 'zipcode','Postnummer'),
+(6, 'Basket_address_fields', 'country','Land'),
+(6, 'Basket_address_fields', 'name','Namn');
+
+-- 7 down
+
+-- 8 up
+create table if not exists suppliers
+(
+    suppliers_pkey serial not null ,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    company varchar(100) not null default '',
+    name varchar(100) not null default '',
+    registrationnumber varchar not null default '',
+    phone varchar not null default '',
+    homepage varchar not null default '',
+    address1 varchar not null default '',
+    address2 varchar not null default '',
+    address3 varchar not null default '',
+    zipcode varchar not null default '',
+    city varchar not null default '',
+    company_mails varchar not null default '',
+    sales_mails varchar not null default '',
+    basket_item_fkey  bigint not null UNIQUE,
+    CONSTRAINT suppliers_pkey PRIMARY KEY (suppliers_pkey),
+    CONSTRAINT suppliers_basket_item_fkey FOREIGN KEY (basket_item_fkey)
+        REFERENCES public.basket_item (basket_item_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE
+);
+
+-- 8 down
+
+-- 9 up
+CREATE UNIQUE INDEX idx_basket_item_basket_fkey_stockitem
+    ON public.basket_item USING btree
+        (basket_fkey, stockitem ) ;
+
+DROP INDEX idx_basket_item_basket_fkey_itemno;
+-- 9 down
+
+-- 10 up
+
+create table if not exists customers
+(
+    customers_pkey serial not null ,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    company varchar(100) not null default '',
+    name varchar(100) not null default '',
+    registrationnumber varchar not null default '',
+    phone varchar not null default '',
+    homepage varchar not null default '',
+    address1 varchar not null default '',
+    address2 varchar not null default '',
+    address3 varchar not null default '',
+    zipcode varchar not null default '',
+    city varchar not null default '',
+    company_mails varchar not null default '',
+    basket_fkey  bigint not null UNIQUE,
+    CONSTRAINT customers_pkey PRIMARY KEY (customers_pkey),
+    CONSTRAINT customers_basket_fkey FOREIGN KEY (basket_fkey)
+        REFERENCES basket (basket_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE
+);
+
+ALTER TABLE basket
+    ADD COLUMN reference VARCHAR NOT NULL DEFAULT '';
+
+ALTER TABLE basket
+    ADD COLUMN debt VARCHAR NOT NULL DEFAULT '';
+
+ALTER TABLE basket
+    ADD COLUMN discount numeric(15,2) not null default 0.0;
+
+-- 10 down
+
+-- 11 up
+create table if not exists sales_order_head
+(
+    sales_order_head_pkey serial not null,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    order_type int not null default 1,
+    order_no varchar(100) not null,
+    orderdate timestamp without time zone NOT NULL DEFAULT NOW(),
+    userid varchar(100) not null,
+    company varchar(100) not null,
+    name varchar(100) not null default '',
+    registrationnumber varchar not null default '',
+    phone varchar not null default '',
+    homepage varchar not null default '',
+    address1 varchar not null default '',
+    address2 varchar not null default '',
+    address3 varchar not null default '',
+    zipcode varchar not null default '',
+    city varchar not null default '',
+    company_mails varchar not null default '',
+    externalref varchar not null default '',
+    CONSTRAINT sales_order_head_pkey PRIMARY KEY (sales_order_head_pkey)
+) ;
+
+CREATE unique INDEX idx_sales_order_head_order_no
+    ON public.sales_order_head USING btree
+        (order_no ASC NULLS LAST)
+;
+
+create table if not exists sales_order_items
+(
+    sales_order_items_pkey serial not null,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    sales_order_head_fkey bigint not null default 0,
+    itemno int not null default 1,
+    stockitem varchar(100) not null,
+    description varchar(100) not null,
+    quantity int not null default 1,
+    price numeric(15,2) not null default 0.0,
+    deliverydate timestamp without time zone NOT NULL DEFAULT NOW(),
+    CONSTRAINT sales_order_items_pkey PRIMARY KEY (sales_order_items_pkey),
+    CONSTRAINT sales_order_head_order_items_fkey FOREIGN KEY (sales_order_head_fkey)
+        REFERENCES public.sales_order_head (sales_order_head_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE
+) ;
+
+CREATE unique INDEX idx_sales_order_head_fkey_itemno
+    ON public.sales_order_items USING btree
+        (sales_order_head_fkey, itemno);
+
+create table if not exists purchase_order_head
+(
+    purchase_order_head_pkey serial not null,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    order_type int not null default 1,
+    order_no varchar(100) not null,
+    orderdate timestamp without time zone NOT NULL DEFAULT NOW(),
+    userid varchar(100) not null,
+    company varchar(100) not null,
+    name varchar(100) not null default '',
+    registrationnumber varchar not null default '',
+    phone varchar not null default '',
+    homepage varchar not null default '',
+    address1 varchar not null default '',
+    address2 varchar not null default '',
+    address3 varchar not null default '',
+    zipcode varchar not null default '',
+    city varchar not null default '',
+    company_mails varchar not null default '',
+    sales_mails varchar not null default '',
+    externalref varchar not null default '',
+    CONSTRAINT purchase_order_head_pkey PRIMARY KEY (purchase_order_head_pkey)
+) ;
+
+CREATE unique INDEX idx_purchase_order_head_order_no
+    ON public.purchase_order_head USING btree
+        (order_no ASC NULLS LAST)
+;
+
+create table if not exists purchase_order_items
+(
+    purchase_order_items_pkey serial not null,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    purchase_order_head_fkey bigint not null default 0,
+    itemno int not null default 1,
+    stockitem varchar(100) not null,
+    description varchar(100) not null,
+    quantity int not null default 1,
+    price numeric(15,2) not null default 0.0,
+    deliverydate timestamp without time zone NOT NULL DEFAULT NOW(),
+    CONSTRAINT purchase_order_items_pkey PRIMARY KEY (purchase_order_items_pkey),
+    CONSTRAINT purchase_order_head_order_items_fkey FOREIGN KEY (purchase_order_head_fkey)
+        REFERENCES purchase_order_head (purchase_order_head_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE
+) ;
+
+CREATE unique INDEX idx_purchase_order_head_fkey_itemno
+    ON purchase_order_items USING btree
+        (purchase_order_head_fkey, itemno);
+
+DROP TABLE order_basket;
+DROP TABLE order_vehicle;
+DROP TABLE order_addresses_order;
+DROP TABLE order_companies_order;
+DROP TABLE order_items;
+DROP TABLE order_head;
+
+-- 11 down
+
+-- 12 up
+
+ALTER TABLE sales_order_head
+    ADD COLUMN debt VARCHAR NOT NULL DEFAULT '';
+
+ALTER TABLE sales_order_head
+    ADD COLUMN customer VARCHAR NOT NULL DEFAULT '';
+
+ALTER TABLE purchase_order_head
+    ADD COLUMN supplier VARCHAR NOT NULL DEFAULT '';
+
+-- 12 down

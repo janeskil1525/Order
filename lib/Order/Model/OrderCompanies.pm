@@ -1,5 +1,5 @@
 package Order::Model::OrderCompanies;
-use Mojo::Base 'Daje::Utils::Sentry::Raven';
+use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Try::Tiny;
 

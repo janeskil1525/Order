@@ -1,7 +1,7 @@
 package Order::Utils::Addresses::Company;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
-use Daje::Model::Addresses;
+use Order::Model::Addresses;
 
 our $VERSION = '0.3';
 
@@ -46,7 +46,7 @@ sub load_addresses_p{
 sub save_company_address_p{
     my ($self, $data) = @_;
 
-    return Daje::Model::Addresses->new(
+    return Order::Model::Addresses->new(
         pg => $self->pg
     )->save_address_p($data)->then(sub{
         my $result = shift;

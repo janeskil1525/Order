@@ -3,7 +3,7 @@ use Mojo::Base "Daje::Utils::Sentinelsender";
 
 #use Daje::Model::Data::Reservation;
 #use Daje::Warehouse::Stockmanager;
-use Daje::Utils::Postgres::Columns;
+use Order::Utils::Postgres::Columns;
 use Data::Dumper;
 use Try::Tiny;
 
@@ -173,7 +173,7 @@ sub set_setdefault_data{
 	my ($self, $data) = @_;
 
 	my $fields;
-	($data, $fields) = Daje::Utils::Postgres::Columns->new(
+	($data, $fields) = Order::Utils::Postgres::Columns->new(
 		pg => $self->pg
 	)->set_setdefault_data($data, 'basket_item');
 

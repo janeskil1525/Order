@@ -5,9 +5,9 @@ use Mojo::Base 'Daje::Utils::Sentinelsender';
 use Mojo::JSON qw {decode_json };
 use Order::Helper::Selectnames;
 use Order::Model::OrderAddresses;
-use Daje::Model::OrderCompanies;
-use Daje::Utils::Postgres::Columns;
-use Daje::Utils::User;
+use Order::Model::OrderCompanies;
+use Order::Utils::Postgres::Columns;
+use Order::Utils::User;
 use Try::Tiny;
 use Data::Dumper;
 
@@ -168,7 +168,7 @@ sub set_setdefault_data{
     my ($self, $data) = @_;
 
     my $fields;
-    ($data, $fields) = Daje::Utils::Postgres::Columns->new(
+    ($data, $fields) = Order::Utils::Postgres::Columns->new(
         pg => $self->pg
     )->set_setdefault_data($data, 'order_head');
 
@@ -179,7 +179,7 @@ sub get_table_column_names {
     my $self = shift;
 
     my $fields;
-    $fields = Daje::Utils::Postgres::Columns->new(
+    $fields = Order::Utils::Postgres::Columns->new(
         pg => $self->pg
     )->get_table_column_names('order_head');
 

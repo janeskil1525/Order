@@ -58,7 +58,7 @@ sub importBasket{
 		}
 		$tx->commit();
 	};
-	# Daje::Utils::Sentry::Raven->new()->capture_message("[Shoppingcart::Cart::importBasket] " . $@) if $@;
+	# Daje::Utils::Sentinelsender->new()->capture_message("[Shoppingcart::Cart::importBasket] " . $@) if $@;
 	say $@ if $@;
 
 	$result->{success} = 0 if $@;

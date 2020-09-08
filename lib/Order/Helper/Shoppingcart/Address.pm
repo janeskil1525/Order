@@ -2,7 +2,7 @@ package Order::Helper::Shoppingcart::Address;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Try::Tiny;
-#use Daje::Utils::Addresses::Company;
+#use Order::Utils::Addresses::Company;
 
 has 'pg';
 has 'db';

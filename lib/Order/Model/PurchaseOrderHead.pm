@@ -11,6 +11,39 @@ use Try::Tiny;
 use Data::Dumper;
 
 has 'pg';
+has 'db';
+
+sub get_summary{
+    my ($self, $order_head_pkey) = @_;
+
+    my $orderhead = $self->load_order_head(
+        $order_head_pkey
+    )->hash;
+
+    return "Order nr. " . $orderhead->{order_no} . "\n Order datum " . substr($orderhead->{orderdate},0,10);
+}
+
+sub get_company{
+    my ($self, $order_head_pkey) = @_;
+
+    return $self->pg->db->select(
+        'purchase_order_head', 'company',
+        {
+            purchase_order_head_pkey => $order_head_pkey
+        }
+    )->hash->{company};
+}
+
+sub get_userid{
+    my ($self, $order_head_pkey) = @_;
+
+    return $self->pg->db->select(
+        'purchase_order_head', 'userid',
+        {
+            purchase_order_head_pkey => $order_head_pkey
+        }
+    )->hash->{userid};
+}
 
 sub companies_fkey{
     my ($self, $order_head_pkey) = @_;
@@ -27,9 +60,9 @@ sub load_order_head{
     my ($self, $order_head_pkey) = @_;
 
     return $self->pg->db->select(
-        'order_head', '*',
+        'purchase_order_head', '*',
         {
-            order_head_pkey => $order_head_pkey
+            purchase_order_head_pkey => $order_head_pkey
         }
     );
 }
@@ -38,9 +71,9 @@ sub load_order_head_p{
     my ($self, $order_head_pkey) = @_;
 
     return $self->pg->db->select_p(
-        'order_head', '*',
+        'purchase_order_head', '*',
         {
-            order_head_pkey => $order_head_pkey
+            purchase_order_head_pkey => $order_head_pkey
         }
     );
 }
@@ -51,7 +84,7 @@ sub loadOpenOrderList{
     my $selectnames = Daje::Utils::Selectnames->new()->get_select_names($grid_fields_list);
 
     return $self->pg->db->select(
-        ['order_head',
+        ['purchase_order_head',
             ['users', users_pkey => 'users_fkey'],
             ['companies', companies_pkey => 'companies_fkey']],
         $selectnames,
@@ -64,14 +97,24 @@ sub loadOpenOrderList{
 sub upsertHead{
     my ($self, $data, $ordertype, $item) = @_;
 
+    my $db;
+    if($self->db) {
+        $db = $self->db;
+    } else {
+        $db = $self->pg->db;
+    }
+
     $data->{order_no} = $self->getOrderNo()
         unless exists $data->{order_no} and $data->{order_no} > 0;
 
     my $updates;
     $updates->{order_type} = $ordertype;
     $updates->{order_no} = $data->{order_no};
-    $updates->{company} = $data->{details}->{company};
-    $updates->{userid} = $data->{details}->{userid};
+    $updates->{company} = $item->{supplier};
+
+    $updates->{userid} = $item->{sales_mails};
+    $updates->{userid} = $item->{company_mails} unless $updates->{userid};
+
     $updates->{name} = $item->{name};
     $updates->{registrationnumber} = $item->{registrationnumber};
     $updates->{phone} = $item->{phone};
@@ -87,7 +130,7 @@ sub upsertHead{
     $updates->{supplier} = $item->{supplier};
 
     my $order_head_pkey = try{
-        $self->pg->db->insert(
+        $db->insert(
             'purchase_order_head', $updates,
             {
                 on_conflict => \[' (order_no) Do update set moddatetime = ?', 'now()'],
@@ -135,12 +178,14 @@ sub getSalesUser{
 sub getOrderNo{
     my $self = shift;
 
-    return try {
-        $self->pg->db->query(qq{ SELECT nextval('orderno') as orderno })->hash->{orderno};
-    }catch{
-        $self->capture_message("[Daje::Model::OrderHead::getOrderNo] " . $_);
-        say $_;
-    };
+    my $db;
+    if($self->db) {
+        $db = $self->db;
+    } else {
+        $db = $self->pg->db;
+    }
+
+    return  $db->query(qq{ SELECT nextval('orderno') as orderno })->hash->{orderno};
 }
 
 sub set_setdefault_data{

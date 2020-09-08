@@ -6,6 +6,7 @@ use Mojo::JSON qw {decode_json };
 use Try::Tiny;
 
 has 'pg';
+has 'db';
 
 sub load_order_items_p{
 	my ($self, $order_head_pkey) = @_;
@@ -20,11 +21,17 @@ sub load_order_items_p{
 
 sub upsertItem{
 	my ($self, $data, $purchase_order_head_pkey) = @_;
-	
+
+	my $db;
+	if($self->db) {
+		$db = $self->db;
+	} else {
+		$db = $self->pg->db;
+	}
 	$data->{description} = '' unless $data->{description};
 	
 	my $result = try {
-		$self->pg->db->insert(
+		$db->insert(
 			'purchase_order_items',
 				{
 					purchase_order_head_fkey => $purchase_order_head_pkey,

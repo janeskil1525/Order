@@ -1,24 +1,24 @@
 package Order::Helper::Order;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
+use Order::Model::PurchaseOrderHead;
+use Order::Model::SalesOrderHead;
+use Order::Model::SalesOrderItem;
 
-use Daje::Model::OrderHead;
-use Daje::Model::OrderItem;
-use Daje::Model::OrderCompanies;
-use Daje::Model::OrderAddresses;
-use Daje::Model::Companies;
-use Daje::Order::Summary;;
+use Order::Model::OrderCompanies;
+use Order::Model::OrderAddresses;
+use Order::Helper::Order::Summary;
 
 use Try::Tiny;
 
 has 'pg';
 
-sub get_order_companies_fkey{
+sub get_order_company{
     my ($self, $order_head_pkey) = @_;
 
-    return Daje::Model::OrderHead->new(
+    return Order::Model::PurchaseOrderHead->new(
         pg => $self->pg
-    )->companies_fkey(
+    )->get_company(
         $order_head_pkey
     );
 }
@@ -26,7 +26,7 @@ sub get_order_companies_fkey{
 sub get_order_summary{
     my ($self, $order_head_pkey) = @_;
 
-    return Daje::Order::Summary->new(
+    return Order::Helper::Order::Summary->new(
         pg => $self->pg
     )->get_summary(
         $order_head_pkey
@@ -34,58 +34,84 @@ sub get_order_summary{
 }
 
 sub loadOpenOrderList{
-    my ($self, $companies_fkey, $ordertype, $grid_fields_list) = @_;
+    my ($self, $companies_fkey, $type, $grid_fields_list) = @_;
 
-    my $order->{data} = Daje::Model::OrderHead->new(
-        pg => $self->pg
-    )->loadOpenOrderList($companies_fkey, $ordertype, $grid_fields_list);
+    my $order;
+    if($type == 1) {
+        $order->{data} = $self->loadOpenPurchaseOrderList($companies_fkey, $grid_fields_list);
+    } else {
+        $order->{data} = $self->loadOpenSalesOrderList($companies_fkey, $grid_fields_list);
+    }
+
     return $order;
 }
 
-sub set_setdefault_item_data{
+sub loadOpenPurchaseOrderList{
+    my ($self, $companies_fkey, $grid_fields_list) = @_;
+
+    my $order->{data} = Order::Model::PurchaseOrderHead->new(
+        pg => $self->pg
+    )->loadOpenOrderList($companies_fkey, $grid_fields_list);
+    return $order;
+}
+
+sub loadOpenSalesOrderList{
+    my ($self, $companies_fkey, $grid_fields_list) = @_;
+
+    my $order->{data} = Order::Model::SalesOrderHead->new(
+        pg => $self->pg
+    )->loadOpenOrderList($companies_fkey, $grid_fields_list);
+    return $order;
+}
+
+sub set_setdefault_purchaseitem_data{
     my ($self, $data) = @_;
 
-    return Daje::Model::OrderItem->new(
+    return Order::Model::PurchaseOrderItem->new(
+        pg => $self->pg
+    )->set_setdefault_data($data);
+}
+
+sub set_setdefault_salesitem_data{
+    my ($self, $data) = @_;
+
+    return Order::Model::SalesOrderItem->new(
         pg => $self->pg
     )->set_setdefault_data($data);
 }
 
 sub load_order_head{
-    my ($self, $order_head_pkey) = @_;
+    my ($self, $order_head_pkey, $type) = @_;
 
-    return Daje::Model::OrderHead->new(
+    my $order_head;
+    if($type == 1){
+        $order_head = $self->load_salesorder_head($order_head_pkey);
+    } else {
+        $order_head = $self->load_purchaseorder_head($order_head_pkey);
+    }
+    return $order_head;
+}
+
+sub load_salesorder_head{
+    my ($self, $order_head_pkey, $type) = @_;
+
+    return Order::Model::SalesOrderHead->new(
         pg => $self->pg
     )->load_order_head($order_head_pkey)
 }
 
-sub load_order_head_p{
-    my ($self, $order_head_pkey) = @_;
+sub load_purchaseorder_head{
+    my ($self, $order_head_pkey, $type) = @_;
 
-    return Daje::Model::OrderHead->new(
+    return Order::Model::PurchaseOrderHead->new(
         pg => $self->pg
-    )->load_order_head_p($order_head_pkey)
-}
-
-sub load_order_items_p{
-    my ($self, $order_head_pkey) = @_;
-
-    return Daje::Model::OrderItem->new(
-        pg => $self->pg
-    )->load_order_items_p($order_head_pkey);
-}
-
-sub load_order_companies_p{
-    my ($self, $order_head_pkey) = @_;
-
-    return Daje::Model::OrderCompanies->new(
-        pg => $self->pg
-    )->load_order_companies_p($order_head_pkey);
+    )->load_order_head($order_head_pkey)
 }
 
 sub load_order_addresses_p{
     my ($self, $order_head_pkey) = @_;
 
-    return Daje::Model::OrderAddresses->new(
+    return Order::Model::OrderAddresses->new(
         pg => $self->pg
     )->load_order_addresses_p($order_head_pkey);
 }
@@ -94,7 +120,7 @@ sub get_table_column_names{
     my $self = shift;
 
     my $ordercompanies = try {
-        Daje::Model::Companies->new(
+        Order::Model::Companies->new(
             pg => $self->pg
         )->get_table_column_names();
     }catch{
@@ -103,7 +129,7 @@ sub get_table_column_names{
     };
 
     my $orderaddresses = try{
-        Daje::Model::OrderAddresses->new(
+        Order::Model::OrderAddresses->new(
             pg => $self->pg
         )->get_table_column_names();
     }catch{
@@ -112,7 +138,7 @@ sub get_table_column_names{
     };
 
     my $orderhead = try{
-        Daje::Model::OrderHead->new(
+        Order::Model::OrderHead->new(
             pg => $self->pg
         )->get_table_column_names();
     }catch{
@@ -127,7 +153,7 @@ sub get_table_default_data{
 
     my $ordercompanies = try {
         my ($data, $fields);
-        ($data, $fields) = Daje::Model::Companies->new(
+        ($data, $fields) = Order::Model::Companies->new(
             pg => $self->pg
         )->set_setdefault_data();
 
@@ -141,7 +167,7 @@ sub get_table_default_data{
 
     my $orderaddresses = try{
         my ($data, $fields);
-        ($data, $fields) = Daje::Model::OrderAddresses->new(
+        ($data, $fields) = Order::Model::OrderAddresses->new(
             pg => $self->pg
         )->set_setdefault_data();
 
@@ -155,7 +181,7 @@ sub get_table_default_data{
 
     my $orderhead = try{
         my ($data, $fields);
-        ($data, $fields) = Daje::Model::OrderHead->new(
+        ($data, $fields) = Order::Model::OrderHead->new(
             pg => $self->pg
         )->set_setdefault_data($data);
         my $table->{data} = $data;

@@ -851,3 +851,13 @@ ALTER TABLE purchase_order_head
     ADD COLUMN supplier VARCHAR NOT NULL DEFAULT '';
 
 -- 12 down
+
+-- 13 up
+
+ALTER TABLE basket_item
+    ADD COLUMN discount numeric(15,2) not null default 0.0;
+
+CREATE INDEX idx_basket_item_supplier
+    ON basket_item(supplier);
+
+-- 13 down

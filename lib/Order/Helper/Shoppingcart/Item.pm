@@ -64,7 +64,7 @@ sub upsertItem{
 	$data->{itemno} = $db->query(
 		qq{SELECT COALESCE(MAX(itemno), 0) + 1  as itemno FROM basket_item WHERE basket_fkey = ? },
 			$data->{basket_pkey})->hash->{itemno}
-	unless $data->{itemno};
+		unless $data->{itemno};
 
 	my $result = $db->insert(
 		'basket_item', {

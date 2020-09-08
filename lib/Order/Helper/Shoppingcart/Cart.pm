@@ -210,10 +210,11 @@ sub setStatusOrder{
     my $basket_data->{status} = 'Order created';
             
     $self->pg->db->update(
-         'basket', $basket_data
-          ,{
-             basket_pkey => $basket_pkey
-         }
+        'basket',
+        $basket_data,
+            {
+                basket_pkey => $basket_pkey
+            }
     );
 }
 

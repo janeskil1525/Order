@@ -26,30 +26,32 @@ sub importBasket{
 	my $salesorder_head_pkey;
 
 	eval {
-		my $tx = $self->pg->db->begin;
+		my $db = $self->pg->db;
+		my $tx = $db->begin;
+
 		for my $item (@{$items}){
 			my %params = map { $_ => $item->{supplier}  } @suppliers;
 			if (!( exists $params{$item->{supplier}})) {
 				$basket->{order_no} = 0;
 				$purchaseorder_head_pkey = Order::Model::PurchaseOrderHead->new(
-					pg => $self->pg
+					db => $db
 				)->upsertHead($basket, 1, $item);
 
 				$basket->{order_no} = 0;
 				$salesorder_head_pkey = Order::Model::SalesOrderHead->new(
-					pg => $self->pg
-				)->upsertHead($basket, 2, $item->{supplier});
+					db => $db
+				)->upsertHead($basket, 2);
 				push @suppliers, $item->{supplier};
 				push @{$result->{salesorder_head_pkey}}, $salesorder_head_pkey;
 				push @{$result->{purchaseorder_head_pkey}}, $purchaseorder_head_pkey;
 			}
 			Order::Model::PurchaseOrderItem->new(
-					pg => $self->pg
+					db => $db
 			)->upsertItem(
 				$item, $purchaseorder_head_pkey
 			);
 			Order::Model::SalesOrderItem->new(
-					pg => $self->pg
+					db => $db
 			)->upsertItem(
 				$item, $salesorder_head_pkey
 			);

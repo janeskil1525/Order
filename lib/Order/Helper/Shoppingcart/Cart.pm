@@ -367,11 +367,11 @@ sub upsertItem{
         my $item = Order::Helper::Shoppingcart::Item->new(db => $db);
         $data->{basket_pkey} = $basket_pkey;
         $item->upsertItem($data);
-			
-		 $tx->commit();
+        $tx->commit();
 	};
     my $local = $@;
     $self->capture_message('','Shoppingcart::Cart::upsertItem', (ref $self), (caller(0))[3], $local) if $local;
+    say $local if $local;
     my $result;
 	if($local){
         $result->{result} = $local;

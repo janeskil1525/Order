@@ -204,7 +204,6 @@ sub set_grid_settings{
 sub get_settings{
 	my ($self, $setting) = @_;
 
-	say $setting;
 	my $stmt_default = qq{
 		SELECT setting_value, setting_order, setting_properties, setting_backend_properties, setting_no
 		FROM default_settings_values

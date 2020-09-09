@@ -83,13 +83,14 @@ sub saveBasket{
 }
 
 sub checkOut{
-    my ($self, $data) = @_;
+    my ($self, $data, $minion) = @_;
 
 	my $result = Order::Helper::Shoppingcart::Cart->new(
 		pg => $self->pg,
 	)->saveBasket($data, $data->{approved});
+
 	if($data->{approved}) {
-		$self->minion->enqueue('create_orders' => [$result] => {priority => 0});
+		$minion->enqueue('create_orders' => [$result] => {priority => 0});
 	}
 
 	

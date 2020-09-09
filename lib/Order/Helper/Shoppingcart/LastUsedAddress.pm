@@ -60,12 +60,17 @@ sub get_default_addresses {
 
     my $ua = Mojo::UserAgent->new();
 
-    my $url = $self->config->{defaultaddress}->{webserver} . '/api/v1/company/default/address/' . $company;
+    my $key = $self->config->{webshop}->{key};
+    my $url = $self->config->{webshop}->{address} . '/api/v1/company/default/address/' . $company;
     my $value = try {
-        return $ua->get($url)->result->json;
+        return $ua->get(
+            $url => {
+                Accept => '*/*', 'X-Token-Check' => $key
+            }
+        )->result->json;
     } catch {
         $self->capture_message('','Order', (ref $self), (caller(0))[3], "get_default_addresses " . $_);
-        say $_;
+        say "[Order::Helper::Shoppingcart::LastUsedAddress::get_default_addresses] " . $_;
         return ;
     };
 
@@ -85,7 +90,6 @@ sub upsert_last_used_adresses {
     } else {
         $db = $self->pg->db;
     }
-    say Dumper($address);
 
     my $result = try {
         my $return = $db->insert(
@@ -120,7 +124,7 @@ sub upsert_last_used_adresses {
         return 1;
     } catch {
         $self->capture_message('','Order', (ref $self), (caller(0))[3], "upsert_last_used_adresses " . $_);
-        say $_;
+        say "[Order::Helper::Shoppingcart::LastUsedAddress::upsert_last_used_adresses] " .  $_;
         return 0;
     };
 

@@ -61,6 +61,8 @@ sub upsertItem{
 		$db = $self->pg->db;
 	}
 	$data->{rfq_note} = '' unless $data->{rfq_note};
+	$data->{freight} = 0 unless $data->{freight};
+
 	$data->{itemno} = $db->query(
 		qq{SELECT COALESCE(MAX(itemno), 0) + 1  as itemno FROM basket_item WHERE basket_fkey = ? },
 			$data->{basket_pkey})->hash->{itemno}
@@ -87,42 +89,45 @@ sub upsertItem{
 			}
 		)->hash;
 
-	$db->insert('suppliers',
-		{
-			company => $data->{supplier}->{company}->{company},
-			name => $data->{supplier}->{company}->{name},
-			registrationnumber => $data->{supplier}->{company}->{registrationnumber},
-			phone => $data->{supplier}->{company}->{phone},
-			homepage => $data->{supplier}->{company}->{homepage},
-			address1 => $data->{supplier}->{address}->{address1},
-			address2 => $data->{supplier}->{address}->{address2},
-			address3 => $data->{supplier}->{address}->{address3},
-			zipcode => $data->{supplier}->{address}->{zipcode},
-			city => $data->{supplier}->{address}->{city},
-			company_mails => $data->{supplier}->{company_mails},
-			sales_mails => $data->{supplier}->{sales_mails},
-			basket_item_fkey  => $result->{basket_item_pkey},
-		},
-		 {
-		 	on_conflict => [
-				['basket_item_fkey'] => {
-		 			moddatetime => 'now()',
-		 			company => $data->{supplier}->{company}->{company},
-		 			name => $data->{supplier}->{company}->{name},
-					registrationnumber => $data->{supplier}->{company}->{registrationnumber},
-		 			phone => $data->{supplier}->{company}->{phone},
-		 			homepage => $data->{supplier}->{company}->{homepage},
-					address1 => $data->{supplier}->{address}->{address1},
-					address2 => $data->{supplier}->{address}->{address2},
-					address3 => $data->{supplier}->{address}->{address3},
-					zipcode => $data->{supplier}->{address}->{zipcode},
-					city => $data->{supplier}->{address}->{city},
-					company_mails => $data->{supplier}->{company_mails},
-		 			sales_mails => $data->{supplier}->{sales_mails},,
-		 		}
-			]
-		 }
-	);
+	if($data->{delItem} == 0) {
+		$db->insert('suppliers',
+			{
+				company => $data->{supplier}->{company}->{company},
+				name => $data->{supplier}->{company}->{name},
+				registrationnumber => $data->{supplier}->{company}->{registrationnumber},
+				phone => $data->{supplier}->{company}->{phone},
+				homepage => $data->{supplier}->{company}->{homepage},
+				address1 => $data->{supplier}->{address}->{address1},
+				address2 => $data->{supplier}->{address}->{address2},
+				address3 => $data->{supplier}->{address}->{address3},
+				zipcode => $data->{supplier}->{address}->{zipcode},
+				city => $data->{supplier}->{address}->{city},
+				company_mails => $data->{supplier}->{company_mails},
+				sales_mails => $data->{supplier}->{sales_mails},
+				basket_item_fkey  => $result->{basket_item_pkey},
+			},
+			{
+				on_conflict => [
+					['basket_item_fkey'] => {
+						moddatetime => 'now()',
+						company => $data->{supplier}->{company}->{company},
+						name => $data->{supplier}->{company}->{name},
+						registrationnumber => $data->{supplier}->{company}->{registrationnumber},
+						phone => $data->{supplier}->{company}->{phone},
+						homepage => $data->{supplier}->{company}->{homepage},
+						address1 => $data->{supplier}->{address}->{address1},
+						address2 => $data->{supplier}->{address}->{address2},
+						address3 => $data->{supplier}->{address}->{address3},
+						zipcode => $data->{supplier}->{address}->{zipcode},
+						city => $data->{supplier}->{address}->{city},
+						company_mails => $data->{supplier}->{company_mails},
+						sales_mails => $data->{supplier}->{sales_mails},,
+					}
+				]
+			}
+		);
+	}
+
 
 	# if(exists $data->{stockitems_fkey} and $data->{stockitems_fkey} > 0){
 	# 	my $reservation = Daje::Model::Data::Reservation->new(

@@ -21,7 +21,7 @@ sub _create_orders {
 
 
     my $pg = $job->app->pg;
-    my $config = $job->pp->config;
+    my $config = $job->app->config;
     my $result = create_orders($pg, $data, $config);
 
     if($result){

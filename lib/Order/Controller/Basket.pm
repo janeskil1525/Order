@@ -58,7 +58,8 @@ sub checkout{
     
     my $data = $self->req->body;
     my $hash = decode_json($data);
-    my $result = $self->shoppingcart->checkOut($hash);
+    my $result = $self->shoppingcart->checkOut($hash, $self->app->minion);
+
     $self->render(json => {result => $result});    
 }
 

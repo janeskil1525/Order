@@ -860,4 +860,22 @@ ALTER TABLE basket_item
 CREATE INDEX idx_basket_item_supplier
     ON basket_item(supplier);
 
+ALTER TABLE sales_order_items
+    ADD COLUMN discount numeric(15,2) not null default 0.0;
+
+ALTER TABLE sales_order_items
+    ADD COLUMN freight numeric(15,2) not null default 0.0;
+
+ALTER TABLE purchase_order_items
+    ADD COLUMN discount numeric(15,2) not null default 0.0;
+
+ALTER TABLE purchase_order_items
+    ADD COLUMN freight numeric(15,2) not null default 0.0;
 -- 13 down
+
+-- 14 up
+
+ALTER TABLE sales_order_head
+    ADD COLUMN sales_mails VARCHAR NOT NULL DEFAULT '';
+
+-- 14 down

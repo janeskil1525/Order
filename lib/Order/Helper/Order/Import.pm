@@ -33,14 +33,14 @@ sub importBasket{
 			my %params = map { $_ => $item->{supplier}  } @suppliers;
 			if (!( exists $params{$item->{supplier}})) {
 				$basket->{order_no} = 0;
+				$salesorder_head_pkey = Order::Model::SalesOrderHead->new(
+					db => $db
+				)->upsertHead($basket, 2, $item);
+
+				$basket->{order_no} = 0;
 				$purchaseorder_head_pkey = Order::Model::PurchaseOrderHead->new(
 					db => $db
 				)->upsertHead($basket, 1, $item);
-
-				$basket->{order_no} = 0;
-				$salesorder_head_pkey = Order::Model::SalesOrderHead->new(
-					db => $db
-				)->upsertHead($basket, 2);
 				push @suppliers, $item->{supplier};
 				push @{$result->{salesorder_head_pkey}}, $salesorder_head_pkey;
 				push @{$result->{purchaseorder_head_pkey}}, $purchaseorder_head_pkey;

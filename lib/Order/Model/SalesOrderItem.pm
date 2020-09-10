@@ -28,7 +28,8 @@ sub upsertItem{
 	} else {
 		$db = $self->pg->db;
 	}
-
+	$data->{freight} = 0 unless $data->{freight};
+	$data->{discount} = 0 unless $data->{discount};
 	$data->{description} = '' unless $data->{description};
 	
 	my $result = try {
@@ -40,6 +41,8 @@ sub upsertItem{
 					description => $data->{description},
 					quantity => $data->{quantity},
 					price => $data->{price},
+					freight => $data->{freight},
+					discount => $data->{discount},
 				},
 				{
 					on_conflict => \[

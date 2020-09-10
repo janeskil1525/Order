@@ -94,9 +94,11 @@ sub loadOpenOrderList{
 }
 
 sub upsertHead{
-    my ($self, $data, $ordertype) = @_;
+    my ($self, $data, $ordertype, $item) = @_;
 
     my $db;
+    $item->{sales_mails} = 'jan@daje.work'
+        unless $item->{sales_mails};
     if($self->db) {
         $db = $self->db;
     } else {
@@ -108,9 +110,11 @@ sub upsertHead{
     my $updates;
     $updates->{order_type} = $ordertype;
     $updates->{order_no} = $data->{order_no};
-    $updates->{company} = $data->{details}->{company};;
-    $updates->{userid} = $data->{details}->{userid};;
-    $updates->{name} = $data->{details}->{name};
+    $updates->{company} = $item->{supplier};
+    $updates->{userid} = $item->{sales_mails};
+    $updates->{userid} = $item->{company_mails} unless $updates->{userid};
+
+    $updates->{name} = $item->{name};
     $updates->{registrationnumber} = $data->{details}->{registrationnumber};
     $updates->{homepage} = $data->{details}->{homepage};
     $updates->{phone} = $data->{details}->{phone};
@@ -119,6 +123,8 @@ sub upsertHead{
     $updates->{address3} = $data->{details}->{address3};
     $updates->{zipcode} = $data->{details}->{zipcode};
     $updates->{city} = $data->{details}->{city};
+    $updates->{company_mails} = $item->{company_mails};
+    $updates->{sales_mails} = $item->{sales_mails};
     $updates->{externalref} = $data->{details}->{basketid};
     $updates->{debt} = $data->{details}->{debt};
     $updates->{customer} = $data->{details}->{company};
@@ -132,7 +138,7 @@ sub upsertHead{
             }
         )->hash->{sales_order_head_pkey};
     }catch{
-        say "[Daje::Model::OrderHead::upsertHead] " . $_;
+        say "[DOrder::Model::SalesOrderHead::upsertHead] " . $_;
         $self->capture_message(
             '', 'Order::Model::SalesOrderHead::upsertHead', (ref $self), (caller(0))[3], $_
         );

@@ -28,6 +28,8 @@ sub upsertItem{
 	} else {
 		$db = $self->pg->db;
 	}
+	$data->{freight} = 0 unless $data->{freight};
+	$data->{discount} = 0 unless $data->{discount};
 	$data->{description} = '' unless $data->{description};
 	
 	my $result = try {
@@ -40,13 +42,15 @@ sub upsertItem{
 					description => $data->{description},
 					quantity => $data->{quantity},
 					price => $data->{price},
+					freight => $data->{freight},
+					discount => $data->{discount},
 				},
 				{
 					on_conflict => \[
 						'(purchase_order_head_fkey, itemno) Do update set moddatetime = ?', 'now()'],
 					returning => 'purchase_order_items_pkey'
 				}
-	)->hash;
+		)->hash;
 	}catch{
 		$self->capture_message("[Daje::Model::OrderItem::upsertItem] " . $_);
 		say $_;

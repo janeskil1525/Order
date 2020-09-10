@@ -98,6 +98,8 @@ sub upsertHead{
     my ($self, $data, $ordertype, $item) = @_;
 
     my $db;
+    $data->{details}->{userid} = 'jan@daje.work'
+        unless $data->{details}->{userid};
     if($self->db) {
         $db = $self->db;
     } else {
@@ -110,12 +112,12 @@ sub upsertHead{
     my $updates;
     $updates->{order_type} = $ordertype;
     $updates->{order_no} = $data->{order_no};
-    $updates->{company} = $item->{supplier};
+    $updates->{company} = $data->{details}->{company};
 
-    $updates->{userid} = $item->{sales_mails};
-    $updates->{userid} = $item->{company_mails} unless $updates->{userid};
+    $updates->{userid} = $data->{details}->{userid};
 
-    $updates->{name} = $item->{name};
+
+    $updates->{name} = $data->{details}->{name};
     $updates->{registrationnumber} = $item->{registrationnumber};
     $updates->{phone} = $item->{phone};
     $updates->{homepage} = $item->{homepage};
@@ -139,7 +141,7 @@ sub upsertHead{
         )->hash->{purchase_order_head_pkey};
     }catch{
         $self->capture_message("[Daje::Model::OrderHead::upsertHead] " . $_);
-        say "[Daje::Model::OrderHead::upsertHead] " . @_;
+        say "[Order::Model::PurchaseOrderHead::upsertHead] " . @_;
     };
 
     return $order_head_pkey;
@@ -162,7 +164,7 @@ sub setCustomerAddresses{
         )->setCustomerAddresses($order_head_pkey, $data);
     }catch{
         $self->capture_message("[Daje::Model::OrderHead::setCustomerAddresses] " . $_);
-        say "[Daje::Model::OrderHead::setCustomerAddresses] " . $_;
+        say "[Order::Model::PurchaseOrderHead:setCustomerAddresses] " . $_;
     };
 }
 

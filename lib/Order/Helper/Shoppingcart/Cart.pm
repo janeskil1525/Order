@@ -367,6 +367,7 @@ sub upsertItem{
         my $item = Order::Helper::Shoppingcart::Item->new(db => $db);
         $data->{basket_pkey} = $basket_pkey;
         $item->upsertItem($data);
+
         $tx->commit();
 	};
     my $local = $@;

@@ -1,5 +1,5 @@
 package Order::Helper::Orion::Data::OrderHead;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Order::Helper::Orion::Data::Base';
 
 use DateTime;
 
@@ -16,8 +16,8 @@ has 'invoicecountry' => '';
 has 'invoicename' => '';
 has 'invoicepostcode' => '';
 has 'kind' => "X";
-has 'orderdate' => DateTime->now();
-has 'ourref' => "LAGA";
+has 'orderdate' => sub { return DateTime->now()};
+has 'ourref' => '';
 has 'discount' => 0;
 has 'paymentreference' => '';
 has 'salesperson' => '';
@@ -32,8 +32,10 @@ has 'newsletteremail' => '';
 has 'newsletter' => '';
 has 'text' => '';
 has 'paymenttype' ;
-has 'orders' => [];
-has 'rows' => [];
-has 'vrno' => [];
+has 'orders';
+has 'rows';
+has 'vrno';
 has 'invfee' => 0;
+
+
 1;

@@ -79,7 +79,9 @@ sub upsertItem{
 			supplier => $data->{supplier}->{company}->{company},
 			externalref => $data->{stockitems_fkey},
 			freight => $data->{freight},
-			rfq_note => $data->{rfq_note}},
+			rfq_note => $data->{rfq_note},
+			extradata => $data->{extradata}
+		},
 			{
 				on_conflict => \[
 					'(basket_fkey, stockitem) do update set quantity = ?, rfq_note = ?, freight = ?',

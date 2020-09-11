@@ -879,3 +879,9 @@ ALTER TABLE sales_order_head
     ADD COLUMN sales_mails VARCHAR NOT NULL DEFAULT '';
 
 -- 14 down
+
+-- 15 up
+ALTER TABLE basket_item
+    ADD COLUMN extradata JSONB;
+
+-- 15 down

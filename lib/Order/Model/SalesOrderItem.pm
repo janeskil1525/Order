@@ -15,9 +15,20 @@ sub load_order_items_p{
 		'sales_order_items', '*',
 		{
 			sales_order_head_fkey => $sales_order_head_pkey
-		});
+		}
+	);
 }
 
+sub load_order_items {
+	my ($self, $sales_order_head_pkey) = @_;
+
+	return $self->pg->db->select (
+		'sales_order_items', '*',
+		{
+			sales_order_head_fkey => $sales_order_head_pkey
+		}
+	);
+}
 
 sub upsertItem{
 	my ($self, $data, $sales_order_head_pkey) = @_;

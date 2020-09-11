@@ -54,7 +54,7 @@ sub startup {
 
   $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-  )->migrate(14);
+  )->migrate(15);
 
   my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp

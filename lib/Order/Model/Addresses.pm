@@ -3,8 +3,6 @@ use Mojo::Base -base;
 
 use Order::Utils::Postgres::Columns;
 
-our $VERSION = '0.1';
-
 use Try::Tiny;
 
 has 'pg';

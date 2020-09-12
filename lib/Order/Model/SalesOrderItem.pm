@@ -47,13 +47,14 @@ sub upsertItem{
 		$db->insert('sales_order_items',
 			{
 				sales_order_head_fkey => $sales_order_head_pkey,
-					itemno => $data->{itemno},
-					stockitem => $data->{stockitem},
-					description => $data->{description},
-					quantity => $data->{quantity},
-					price => $data->{price},
-					freight => $data->{freight},
-					discount => $data->{discount},
+				itemno                => $data->{itemno},
+				stockitem             => $data->{stockitem},
+				description           => $data->{description},
+				quantity              => $data->{quantity},
+				price                 => $data->{price},
+				freight               => $data->{freight},
+				discount              => $data->{discount},
+				extradata             => $data->{extradata},
 				},
 				{
 					on_conflict => \[

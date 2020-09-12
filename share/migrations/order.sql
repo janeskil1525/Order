@@ -885,3 +885,22 @@ ALTER TABLE basket_item
     ADD COLUMN extradata JSONB;
 
 -- 15 down
+
+-- 16 up
+ALTER TABLE sales_order_items
+    ADD COLUMN extradata JSONB;
+-- 16 down
+
+-- 17 up
+ALTER TABLE sales_order_head
+    ADD COLUMN export_to VARCHAR NOT NULL DEFAULT '';
+
+ALTER TABLE sales_order_head
+    ADD COLUMN export_status VARCHAR NOT NULL DEFAULT '';
+
+CREATE INDEX ids_sales_order_head_export_to
+    ON sales_order_head(export_to);
+
+CREATE INDEX ids_sales_order_head_export_status
+    ON sales_order_head(export_status);
+-- 17 down

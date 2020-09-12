@@ -128,6 +128,8 @@ sub upsertHead{
     $updates->{externalref} = $data->{details}->{basketid};
     $updates->{debt} = $data->{details}->{debt};
     $updates->{customer} = $data->{details}->{company};
+    $updates->{export_to} = 'orion';
+    $updates->{export_status} = 'new';
 
     my $order_head_pkey = try{
         $db->insert(

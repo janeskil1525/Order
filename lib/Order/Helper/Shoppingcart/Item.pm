@@ -37,7 +37,7 @@ sub getItemsFull {
 				SELECT
 					itemtype, itemno, stockitem, description, quantity, price, freight
 					suppliers_pkey, company, name, registrationnumber, phone, homepage, address1, address2, address3,
-					zipcode, city, company_mails, sales_mails, suppliers_pkey, company as supplier
+					zipcode, city, company_mails, sales_mails, suppliers_pkey, company as supplier, extradata
 				FROM basket_item, suppliers
 				WHERE basket_item_fkey = basket_item_pkey AND quantity > 0 and basket_fkey = ?
 			},

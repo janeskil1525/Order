@@ -3,6 +3,8 @@ use Mojo::Base "Daje::Utils::Sentinelsender";
 
 #use Daje::Model::Data::Reservation;
 #use Daje::Warehouse::Stockmanager;
+
+use Mojo::JSON qw{to_json};
 use Order::Utils::Postgres::Columns;
 use Data::Dumper;
 use Try::Tiny;
@@ -67,20 +69,21 @@ sub upsertItem{
 		qq{SELECT COALESCE(MAX(itemno), 0) + 1  as itemno FROM basket_item WHERE basket_fkey = ? },
 			$data->{basket_pkey})->hash->{itemno}
 		unless $data->{itemno};
-
+say "Item Data" . Dumper($data);
 	my $result = $db->insert(
 		'basket_item', {
 			basket_fkey => $data->{basket_pkey},
-			stockitem => $data->{stockitem},
-			quantity => $data->{quantity},
-			itemno => $data->{itemno},
-			price => $data->{price},
+			stockitem   => $data->{stockitem},
+			quantity    => $data->{quantity},
+			itemno      => $data->{itemno},
+			price       => $data->{price},
 			description => $data->{description},
-			supplier => $data->{supplier}->{company}->{company},
+			supplier    => $data->{supplier}->{company}->{company},
 			externalref => $data->{stockitems_fkey},
-			freight => $data->{freight},
-			rfq_note => $data->{rfq_note},
-			extradata => $data->{extradata}
+			freight     => $data->{freight},
+			rfq_note    => $data->{rfq_note},
+			extradata   => to_json($data->{extradata}),
+			settings    => to_json($data->{supplier}->{settings}),
 		},
 			{
 				on_conflict => \[

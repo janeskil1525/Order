@@ -12,7 +12,13 @@ sub hash {
     my @keys = keys %{ $self };
     my @values = values %{ $self };
     while (@keys) {
-        $result->{pop(@keys)} = pop(@values);
+        my $tag = pop(@keys);
+        my $value = pop(@values);
+        $result->{$tag} = $value;
+        if(ref $result->{$tag} eq 'DateTime'){
+            my $date = Daje::Utils::MicrosoftDateFormat->new();
+            $result->{$tag} = $date->create_date($value);
+        }
     }
 
     return $result;

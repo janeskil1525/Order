@@ -1,6 +1,7 @@
 package Order::Helper::Orion::Processor;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Matorit::Orion::Communicator::Base;';
 
+use Mojo::JSON qw{to_json};
 use Order::Helper::Orion::Data::OrderHead;
 use Order::Helper::Orion::Data::OrderItem;
 use Order::Model::SalesOrderHead;
@@ -8,19 +9,40 @@ use Order::Model::SalesOrderItem;
 use Order::Model::BasketAdresses;
 
 has 'pg';
+has 'config';
 
 sub process_order {
     my ($self, $salesorderhead_pkey) = @_;
 
+
     my $ordehead = $self->load_orderhead($salesorderhead_pkey);
     my $addresses = $self->load_addresses($ordehead->{externalref});
     my $orderitems = $self->load_orderitems($salesorderhead_pkey);
-    my $orionorderitems = $self->create_orion_orderitem($ordehead, $orderitems, $addresses);
+    my $orionorderitems = $self->create_orion_orderitem($orderitems);
+    my $orion_order = $self-create_orion_order($ordehead, $orionorderitems, $addresses);
 
+    my $result = $self->send_order($orion_order);
 
+    return $result;
 }
 
-sub create_orion_orderhead {
+sub send_order {
+    my ($self, $orion_order) = @_;
+
+    my $result;
+    my $orion_order_json = to_json $orion_order;
+    my $res = $self->post_data($orion_order_json)->result;
+    if($res->is_success)  {
+        $result eq '1';
+    } elsif ($res->is_error){
+        say  $res->message . ' ' . $res->code . ' ' . $res->body;
+        $result = $res->message . ' ' . $res->code . ' ' . $res->body;
+    }
+
+    return $result;
+}
+
+sub create_orion_order {
     my ($self, $ordehead, $orderitems, $addresses) = @_;
 
     my $orionorder = Order::Helper::Orion::Data::OrderHead->new(
@@ -56,36 +78,40 @@ sub create_orion_orderhead {
         'rows' => $orderitems,
         'vrno' => [],
         'invfee' => 0,
-    )
+    )->hash();
+
+    return $orionorder;
 }
 
 sub create_orion_orderitems{
     my ($self, $orderitems) = @_;
 
     my @orionitems;
+    my $position = 1;
     foreach my $item (@{$orderitems}) {
         my $orionitem = Order::Helper::Orion::Data::OrderItem->new(
-            'articleno' => '1233444',
-            'carbreaker' => 'F',
+            'articleno' => $item->{extradata}->{articleno},
+            'carbreaker' => $item->{extradata}->{carbreaker},
             'customerno' => '1234',
             'customerorderno' => '234234',
             'discount' => 0,
             'kind' => 'D',
             'orderingcarbreaker' => 'F',
-            'originalno' => '12313ffd',
+            'originalno' => $item->{extradata}->{originalno},
             'partdesignation' => '3',
-            'partid' => '3333321',
-            'position' => 0,
-            'quality' => '*',
+            'partid' => $item->{extradata}->{id},
+            'position' => $position,
+            'quality' => $item->{extradata}->{quality},
             'quantity' => 1,
-            'referencenumber' => '3321',
-            'remark' => 'red',
-            'sbrcarcode' => '2222',
-            'sbrpartcode' => '3333',
+            'referencenumber' => $item->{extradata}->{referencenumber},
+            'remark' => $item->{extradata}->{remark},
+            'sbrcarcode' => $item->{extradata}->{sbrcarcode},
+            'sbrpartcode' => $item->{extradata}->{sbrpartcode},
             'lagawarranty' => '',
-            'priceperitem' => '140',
+            'priceperitem' => $item->{extradata}->{price},
         )->hash();
         push @orionitems, $orionitem;
+        $position++;
     }
 
     return \@orionitems;

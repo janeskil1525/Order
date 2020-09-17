@@ -289,7 +289,8 @@ sub saveBasket{
 
 sub upsertItem{
     my($self, $data) = @_;
-	
+
+    say "[Order::Helper::Shoppingcart::Cart::upsertItem " . Dumper($data);
 	my $basket_pkey = $self->getBasketPkey($data->{basketid});
     $data->{customer}->{debt} = 'ok'
         unless $data->{customer}->{debt};
@@ -317,18 +318,20 @@ sub upsertItem{
 
             $db->insert('customers',
                 {
-                    company => $data->{customer}->{company}->{company},
-                    name => $data->{customer}->{company}->{name},
+                    company            => $data->{customer}->{company}->{company},
+                    name               => $data->{customer}->{company}->{name},
                     registrationnumber => $data->{customer}->{company}->{registrationnumber},
-                    phone => $data->{customer}->{company}->{phone},
-                    homepage => $data->{customer}->{company}->{homepage},
-                    address1 => $data->{customer}->{address}->{address1},
-                    address2 => $data->{customer}->{address}->{address2},
-                    address3 => $data->{customer}->{address}->{address3},
-                    zipcode => $data->{customer}->{address}->{zipcode},
-                    city => $data->{customer}->{address}->{city},
-                    company_mails => $data->{customer}->{company_mails},
-                    basket_fkey  => $basket_pkey,
+                    phone              => $data->{customer}->{company}->{phone},
+                    homepage           => $data->{customer}->{company}->{homepage},
+                    address1           => $data->{customer}->{address}->{address1},
+                    address2           => $data->{customer}->{address}->{address2},
+                    address3           => $data->{customer}->{address}->{address3},
+                    zipcode            => $data->{customer}->{address}->{zipcode},
+                    city               => $data->{customer}->{address}->{city},
+                    company_mails      => $data->{customer}->{company_mails},
+                    basket_fkey        => $basket_pkey,
+                    externalids        => $data->{customer}->{externalids},
+                    settings           => $data->{customer}->{settings},
                 },
                 {
                     on_conflict => [

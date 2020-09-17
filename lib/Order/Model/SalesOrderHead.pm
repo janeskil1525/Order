@@ -14,6 +14,35 @@ use Data::Dumper;
 has 'pg';
 has 'db';
 
+
+sub set_export_status {
+    my ($self, $sales_order_head_pkey, $status) = @_;
+
+    return $self->pg->db->update(
+        'sales_order_head',
+        {
+            export_status => $status,
+        },{
+            sales_order_head_pkey => $sales_order_head_pkey,
+        }
+    )->hash->{userid};
+}
+
+sub get_order_for_export {
+    my ($self, $export_to) = @_;
+
+    my $order_head = $self->pg->db->select(
+        'sales_order_head', 'sales_order_head_pkey',
+        {
+            export_to     => $export_to,
+            export_status => 'new',
+        },
+        {
+            limit => 1
+        }
+    );
+}
+
 sub get_summary{
     my ($self, $order_head_pkey) = @_;
 
@@ -130,6 +159,7 @@ sub upsertHead{
     $updates->{customer} = $data->{details}->{company};
     $updates->{export_to} = 'orion';
     $updates->{export_status} = 'new';
+    $updates->{settings} = $item->{settings};
 
     my $order_head_pkey = try{
         $db->insert(

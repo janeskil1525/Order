@@ -904,3 +904,21 @@ CREATE INDEX ids_sales_order_head_export_to
 CREATE INDEX ids_sales_order_head_export_status
     ON sales_order_head(export_status);
 -- 17 down
+
+-- 18 up
+
+ALTER TABLE basket_item
+    ADD COLUMN settings JSONB;
+
+ALTER TABLE sales_order_head
+    ADD COLUMN settings JSONB;
+
+-- 18 down
+
+-- 19 up
+ALTER TABLE customers
+    ADD COLUMN settings JSONB;
+
+ALTER TABLE customers
+    ADD COLUMN externalids JSONB;
+-- 19 down

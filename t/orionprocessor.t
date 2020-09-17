@@ -7,7 +7,7 @@ use Mojo::JSON qw {from_json};
 use DateTime;
 use Order::Helper::Orion::Data::OrderHead;
 use Order::Helper::Orion::Data::OrderItem;
-
+use Order::Helper::Orion::Task;
 
 sub get_orderhead {
 
@@ -157,7 +157,32 @@ sub get_orderitem_as_json {
     return eval { $resp = from_json($json); 1 };
 }
 
+sub process_orion_orders {
 
+    my $pg = Mojo::Pg->new->dsn(
+        "dbi:Pg:dbname=Order;host=192.168.1.100;port=15432;user=postgres;password=PV58nova64"
+    );
+
+    my $data;
+    my $config;
+    $config->{orion}->{address} = 'https://testwss.bosab.se/';
+    $config->{orion}->{save_salesorder_endpoint} = 'SaveOrder';
+
+    my $task = Order::Helper::Orion::Task->new(
+        pg => $pg,
+        endpoint_address => 'https://testwss.bosab.se/',
+        endpoint_path => 'SaveOrder'
+    );
+
+    my $result = $task->process_orion_orders_test($pg, $config, $data);
+
+    say $result;
+
+    return $result;
+
+}
+
+ok(process_orion_orders() == 1);
 ok(get_orderhead() == 1);
 ok(get_orderhead_as_json() == 1);
 ok(get_orderitem() == 1);

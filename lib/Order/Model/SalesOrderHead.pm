@@ -2,7 +2,7 @@ package Order::Model::SalesOrderHead;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 
-use Mojo::JSON qw {decode_json };
+use Mojo::JSON qw {decode_json from_json};
 use Order::Helper::Selectnames;
 use Order::Model::OrderAddresses;
 use Order::Model::OrderCompanies;
@@ -157,9 +157,15 @@ sub upsertHead{
     $updates->{externalref} = $data->{details}->{basketid};
     $updates->{debt} = $data->{details}->{debt};
     $updates->{customer} = $data->{details}->{company};
-    $updates->{export_to} = 'orion';
+    $updates->{export_to} = '';
+    $updates->{externalids} = $data->{details}->{externalids};
+    my $exportdest = from_json $data->{details}->{externalids};
+    if(exists $exportdest->{orionid} and $exportdest->{orionid}){
+        $updates->{export_to} = 'orion';
+    }
     $updates->{export_status} = 'new';
     $updates->{settings} = $item->{settings};
+
 
     my $order_head_pkey = try{
         $db->insert(

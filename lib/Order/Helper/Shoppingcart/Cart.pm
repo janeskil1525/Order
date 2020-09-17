@@ -1,6 +1,8 @@
 package Order::Helper::Shoppingcart::Cart;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
+use Mojo::JSON qw {to_json};
+
 use Order::Helper::Shoppingcart::Check::CartData;
 use Order::Helper::Shoppingcart::LastUsedAddress;
 use Order::Helper::Shoppingcart::Item;
@@ -84,13 +86,11 @@ sub dropBasket{
 sub loadBasket{
     my($self, $basketid, $grid_fields_list, $details_fields_list, $address_fields_list) = @_;
 
-
     my $transtation = Order::Helper::Translations->new(pg => $self->pg);
     my $selectnames = Order::Helper::Selectnames->new();
     my $gridfields = $selectnames->get_select_names($grid_fields_list);
     my $detailsfields = $selectnames->get_select_names($details_fields_list);
     my $addressfields = $selectnames->get_select_names($address_fields_list);
-
 
     my $basket->{details} = try {
         $transtation->details_headers('Basket_details_fields',
@@ -191,7 +191,7 @@ sub getBasketHeadFull {
         $self->pg->db->query(
             qq{
             SELECT basket_pkey, customers_pkey, customers.company ,name, registrationnumber, phone, homepage, address1, address2, address3 ,
-                zipcode, city, company_mails, basketid, approved, status, payment, userid, reference, debt, discount
+                zipcode, city, company_mails, basketid, approved, status, payment, userid, reference, debt, discount, settings, externalids
             FROM basket, customers WHERE basket_pkey = basket_fkey AND basketid = ? },
             ($basketid)
         )->hash;
@@ -290,7 +290,6 @@ sub saveBasket{
 sub upsertItem{
     my($self, $data) = @_;
 
-    say "[Order::Helper::Shoppingcart::Cart::upsertItem " . Dumper($data);
 	my $basket_pkey = $self->getBasketPkey($data->{basketid});
     $data->{customer}->{debt} = 'ok'
         unless $data->{customer}->{debt};
@@ -330,8 +329,8 @@ sub upsertItem{
                     city               => $data->{customer}->{address}->{city},
                     company_mails      => $data->{customer}->{company_mails},
                     basket_fkey        => $basket_pkey,
-                    externalids        => $data->{customer}->{externalids},
-                    settings           => $data->{customer}->{settings},
+                    externalids        => to_json $data->{customer}->{externalids},
+                    settings           => to_json $data->{customer}->{settings},
                 },
                 {
                     on_conflict => [
@@ -372,6 +371,7 @@ sub upsertItem{
         $item->upsertItem($data);
 
         $tx->commit();
+        say "[Order::Helper::Shoppingcart::Item;::upsertItem] after commit" ;
 	};
     my $local = $@;
     $self->capture_message('','Shoppingcart::Cart::upsertItem', (ref $self), (caller(0))[3], $local) if $local;

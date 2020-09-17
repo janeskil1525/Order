@@ -8,7 +8,7 @@ use Order::Helper::Shoppingcart::Converter;
 use Mojo::Pg;
 
 my $pg = Mojo::Pg->new->dsn(
-    "dbi:Pg:dbname=Order;host=192.168.1.100;port=15432;user=postgres;password=PV58nova64"
+    "dbi:Pg:dbname=Order;host=192.168.1.108;port=5432;user=postgres;password=PV58nova64"
 );
 
 sub convert {

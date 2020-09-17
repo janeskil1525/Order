@@ -39,7 +39,7 @@ sub getItemsFull {
 				SELECT
 					itemtype, itemno, stockitem, description, quantity, price, freight
 					suppliers_pkey, company, name, registrationnumber, phone, homepage, address1, address2, address3,
-					zipcode, city, company_mails, sales_mails, suppliers_pkey, company as supplier, extradata
+					zipcode, city, company_mails, sales_mails, suppliers_pkey, company as supplier, extradata, settings
 				FROM basket_item, suppliers
 				WHERE basket_item_fkey = basket_item_pkey AND quantity > 0 and basket_fkey = ?
 			},
@@ -69,7 +69,7 @@ sub upsertItem{
 		qq{SELECT COALESCE(MAX(itemno), 0) + 1  as itemno FROM basket_item WHERE basket_fkey = ? },
 			$data->{basket_pkey})->hash->{itemno}
 		unless $data->{itemno};
-say "Item Data" . Dumper($data);
+
 	my $result = $db->insert(
 		'basket_item', {
 			basket_fkey => $data->{basket_pkey},
@@ -82,7 +82,7 @@ say "Item Data" . Dumper($data);
 			externalref => $data->{stockitems_fkey},
 			freight     => $data->{freight},
 			rfq_note    => $data->{rfq_note},
-			extradata   => to_json($data->{extradata}),
+			extradata   => $data->{extradata},
 			settings    => to_json($data->{supplier}->{settings}),
 		},
 			{
@@ -133,7 +133,7 @@ say "Item Data" . Dumper($data);
 		);
 	}
 
-
+	say "[Order::Helper::Shoppingcart::Item;::upsertItem] 3" ;
 	# if(exists $data->{stockitems_fkey} and $data->{stockitems_fkey} > 0){
 	# 	my $reservation = Daje::Model::Data::Reservation->new(
 	# 		stockitems_pkey       => $data->{stockitems_fkey},

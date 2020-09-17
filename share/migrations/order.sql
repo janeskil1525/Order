@@ -922,3 +922,10 @@ ALTER TABLE customers
 ALTER TABLE customers
     ADD COLUMN externalids JSONB;
 -- 19 down
+
+-- 20 up
+
+ALTER TABLE sales_order_head
+    ADD COLUMN externalids JSONB;
+
+-- 20 down

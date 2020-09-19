@@ -25,7 +25,7 @@ sub set_export_status {
         },{
             sales_order_head_pkey => $sales_order_head_pkey,
         }
-    )->hash->{userid};
+    );
 }
 
 sub get_order_for_export {
@@ -41,6 +41,14 @@ sub get_order_for_export {
             limit => 1
         }
     );
+
+    my $hash;
+    my $sales_order_head_pkey = 0;
+    $hash = $order_head->hash if $order_head->rows();
+    if($hash){
+        $sales_order_head_pkey = $hash->{sales_order_head_pkey};
+    }
+    return $sales_order_head_pkey;
 }
 
 sub get_summary{

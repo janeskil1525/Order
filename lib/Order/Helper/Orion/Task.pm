@@ -1,6 +1,10 @@
 package Order::Helper::Orion::Task;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
+use Order::Model::SalesOrderHead;
+use Order::Helper::Orion::Processor;
+use Daje::Utils::Sentinelsender;
+
 
 sub init {
     my ($self, $minion) = @_;
@@ -29,10 +33,13 @@ sub process_orion_orders {
     my $salesorder = Order::Model::SalesOrderHead->new(pg => $pg);
 
     while (my $sales_order_head_pkey = $salesorder->get_order_for_export('orion')) {
-        $salesorder->set_export_status($sales_order_head_pkey, 'inprogress');
+        #$salesorder->set_export_status($sales_order_head_pkey, 'inprogress');
 
         my $result = Order::Helper::Orion::Processor->new(
-            pg => $pg, config => $config
+            pg                  => $pg,
+            endpoint_path       => $config->{orion}->{save_salesorder_endpoint},
+            endpoint_address    => $config->{orion}->{address},
+            config              => $config,
         )->process_order(
             $sales_order_head_pkey
         );

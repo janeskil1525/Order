@@ -22,12 +22,17 @@ sub load_order_items_p{
 sub load_order_items {
 	my ($self, $sales_order_head_pkey) = @_;
 
-	return $self->pg->db->select (
+	my $result = $self->pg->db->select (
 		'sales_order_items', '*',
 		{
 			sales_order_head_fkey => $sales_order_head_pkey
 		}
 	);
+
+	my $hash;
+	$hash = $result->hashes if $result->rows;
+
+	return $hash;
 }
 
 sub upsertItem{
@@ -63,8 +68,8 @@ sub upsertItem{
 				}
 			)->hash;
 	}catch{
-		$self->capture_message("[Daje::Model::OrderItem::upsertItem] " . $_);
 		say $_;
+		$self->capture_message("[Daje::Model::OrderItem::upsertItem] " . $_);
 	};
 	
 	return $result;

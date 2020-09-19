@@ -1,4 +1,4 @@
-package Matorit::Orion::Communicator::Base;
+package Order::Helper::Orion::Communicator::Base;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Mojo::UserAgent;

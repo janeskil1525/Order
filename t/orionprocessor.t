@@ -8,6 +8,8 @@ use DateTime;
 use Order::Helper::Orion::Data::OrderHead;
 use Order::Helper::Orion::Data::OrderItem;
 use Order::Helper::Orion::Task;
+use Mojo::Pg;
+use feature 'say';
 
 sub get_orderhead {
 
@@ -160,7 +162,7 @@ sub get_orderitem_as_json {
 sub process_orion_orders {
 
     my $pg = Mojo::Pg->new->dsn(
-        "dbi:Pg:dbname=Order;host=192.168.1.100;port=15432;user=postgres;password=PV58nova64"
+        "dbi:Pg:dbname=Order;host=192.168.1.108;port=5432;user=postgres;password=PV58nova64"
     );
 
     my $data;

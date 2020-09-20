@@ -24,4 +24,5 @@ has 'sbrcarcode' ;
 has 'sbrpartcode' ;
 has 'lagawarranty';
 has 'priceperitem';
+has 'type' => 1;
 1;

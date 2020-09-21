@@ -54,7 +54,7 @@ sub startup {
 
   $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-  )->migrate(20);
+  )->migrate(22);
 
   my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp
@@ -112,7 +112,8 @@ sub startup {
 
   my $auth_yancy = $self->routes->under( '/yancy', sub {
     my ( $c ) = @_;
-
+    my $is_logged_in = $self->app->yancy->auth->require_user;
+    return 1 if $is_logged_in;
     return 1 if ($c->session('auth') // '') eq '1';
     $c->redirect_to('/');
     return undef;
@@ -125,8 +126,24 @@ sub startup {
           schema      => $schema,
           read_schema => 0,
           'editor.return_to'   => '/app/menu/show/',
-          'editor.require_user' => undef,
+          'editor.require_user' => { is_admin => 1 },
       }
+  );
+
+  $self->yancy->plugin( 'Auth' => {
+      schema => 'users',
+      plugins => [
+          [
+              Password => {
+                  username_field  => 'userid',
+                  password_field  => 'passwd',
+                  password_digest => {
+                      type => 'SHA-1',
+                  },
+              }
+          ]
+      ]
+    }
   );
 
   # Router

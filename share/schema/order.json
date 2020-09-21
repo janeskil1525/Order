@@ -1,3 +1,536 @@
 {
-
+  "users": {
+    "title": "Users ",
+    "description": "Registered users in the system",
+    "x-id-field": "users_pkey",
+    "x-list-columns": [
+      "userid",
+      "username",
+      "active",
+      "is_admin"
+    ],
+    "properties": {
+      "users_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "userid": {
+        "type": "string",
+        "format": "email",
+        "x-order": 1
+      },
+      "passwd": {
+        "type": "string",
+        "format": "password",
+        "x-order": 2
+      },
+      "username": {
+        "type": "string",
+        "x-order": 3
+      },
+      "active": {
+        "type": "boolean",
+        "default": 0,
+        "x-order": 4
+      },
+      "is_admin": {
+        "type": "boolean",
+        "default": 0,
+        "x-order": 5
+      }
+    }
+  },
+  "sales_order_head": {
+    "title": "Salesorder head ",
+    "description": "Salesorder head records",
+    "x-id-field": "sales_order_head_pkey",
+    "x-list-columns": [
+      "order_no",
+      "userid",
+      "company",
+      "name"
+    ],
+    "properties": {
+      "sales_order_head_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "order_no": {
+        "type": "integer",
+        "readOnly": true,
+        "x-order": 1
+      },
+      "orderdate": {
+        "type": "string",
+        "format": "date",
+        "x-order": 2
+      },
+      "userid": {
+        "type": "string",
+        "format": "email",
+        "x-order": 3
+      },
+      "company": {
+        "type": "string",
+        "x-order": 4
+      },
+      "name": {
+        "type": "string",
+        "x-order": 5
+      },
+      "registrationnumber": {
+        "type": "string",
+        "x-order": 6
+      },
+      "phone": {
+        "type": "string",
+        "x-order": 7
+      },
+      "homepage": {
+        "type": "string",
+        "x-order": 8
+      },
+      "address1": {
+        "type": "string",
+        "x-order": 9
+      },
+      "address2": {
+        "type": "string",
+        "x-order": 10
+      },
+      "address3": {
+        "type": "string",
+        "x-order": 11
+      },
+      "zipcode": {
+        "type": "string",
+        "x-order": 12
+      },
+      "city": {
+        "type": "string",
+        "x-order": 13
+      },
+      "company_mails": {
+        "type": "string",
+        "x-order": 14
+      },
+      "externalref": {
+        "type": "string",
+        "x-order": 15
+      },
+      "debt": {
+        "type": "string",
+        "x-order": 16
+      },
+      "customer": {
+        "type": "string",
+        "x-order": 17
+      },
+      "sales_mails": {
+        "type": "string",
+        "x-order": 18
+      },
+      "export_to": {
+        "type": "string",
+        "x-order": 19
+      },
+      "export_status": {
+        "type": "string",
+        "x-order": 20
+      }
+    }
+  },
+  "sales_order_items": {
+    "title": "Salesorder items ",
+    "description": "Salesorder item records",
+    "x-id-field": "sales_order_items_pkey",
+    "x-list-columns": [
+      "itemno",
+      "stockitem",
+      "description",
+      "quantity",
+      "price",
+      "freight",
+      "discount"
+    ],
+    "properties": {
+      "sales_order_items_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "sales_order_head_fkey": {
+        "title": "Salesorder no",
+        "x-foreign-key": "sales_order_head",
+        "x-display-field": "order_no",
+        "x-order": 1,
+        "readOnly": true
+      },
+      "itemno": {
+        "type": "integer",
+        "readOnly": true,
+        "x-order": 2
+      },
+      "stockitem": {
+        "type": "string",
+        "readOnly": true,
+        "x-order": 3
+      },
+      "description": {
+        "type": "string",
+        "readOnly": true,
+        "x-order": 4
+      },
+      "quantity": {
+        "type": "integer",
+        "x-order": 5
+      },
+      "price": {
+        "type": "number",
+        "x-order": 6
+      },
+      "deliverydate": {
+        "type": "string",
+        "format": "date-time",
+        "x-order": 7
+      },
+      "discount": {
+        "type": "number",
+        "x-order": 8
+      },
+      "freight": {
+        "type": "number",
+        "x-order": 9
+      }
+    }
+  },
+  "basket": {
+    "title": "Basket ",
+    "description": "Baskets ",
+    "x-id-field": "basket_pkey",
+    "x-list-columns": [
+      "basketid",
+      "approved",
+      "status",
+      "userid",
+      "company",
+      "reference"
+    ],
+    "properties": {
+      "basket_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "basketid": {
+        "type": "string",
+        "readOnly": true,
+        "x-order": 1
+      },
+      "approved": {
+        "type": "boolean",
+        "x-order": 2
+      },
+      "status": {
+        "type": "string",
+        "x-order": 3
+      },
+      "payment": {
+        "type": "string",
+        "x-order": 4
+      },
+      "userid": {
+        "type": "string",
+        "format": "email",
+        "x-order": 5
+      },
+      "company": {
+        "type": "string",
+        "x-order": 6
+      },
+      "reference": {
+        "type": "string",
+        "x-order": 7
+      },
+      "debt": {
+        "type": "string",
+        "x-order": 8
+      },
+      "discount": {
+        "type": "number",
+        "x-order": 9
+      }
+    }
+  },
+  "basket_item": {
+    "title": "Basket item",
+    "description": "Basket items",
+    "x-id-field": "basket_item_pkey",
+    "x-list-columns": [
+      "itemno",
+      "stockitem",
+      "description",
+      "quantity",
+      "price",
+      "freight",
+      "supplier"
+    ],
+    "properties": {
+      "basket_item_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "basket_fkey": {
+        "title": "Basket id",
+        "x-foreign-key": "basket",
+        "x-display-field": "basketid",
+        "x-order": 1,
+        "readOnly": true
+      },
+      "itemtype": {
+        "type": "integer",
+        "readOnly": true,
+        "x-order": 2
+      },
+      "itemno": {
+        "type": "integer",
+        "readOnly": true,
+        "x-order": 3
+      },
+      "stockitem": {
+        "type": "string",
+        "readOnly": true,
+        "x-order": 4
+      },
+      "description": {
+        "type": "string",
+        "readOnly": true,
+        "x-order": 5
+      },
+      "quantity": {
+        "type": "string",
+        "x-order": 6
+      },
+      "price": {
+        "type": "number",
+        "x-order": 7
+      },
+      "externalref": {
+        "type": "number",
+        "x-order": 8
+      },
+      "expirydate": {
+        "type": "string",
+        "format": "date-time",
+        "x-order": 9
+      },
+      "rfq_note": {
+        "type": "string",
+        "format": "textarea",
+        "x-order": 10
+      },
+      "supplier": {
+        "type": "string",
+        "x-order": 11
+      },
+      "freight": {
+        "type": "number",
+        "x-order": 12
+      },
+      "discount": {
+        "type": "number",
+        "x-order": 13
+      }
+    }
+  },
+  "languages": {
+    "title": "Languages",
+    "description": "Available languages",
+    "x-id-field": "languages_pkey",
+    "x-list-columns": [
+      "lan",
+      "lan_name"
+    ],
+    "properties": {
+      "languages_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "lan" : {
+        "type": "string",
+        "x-order": 1
+      },
+      "lan_name" : {
+        "type": "string",
+        "x-order": 2
+      }
+    }
+  },
+  "translations": {
+    "title": "Translations",
+    "description": "Available translations",
+    "x-id-field": "translations_pkey",
+    "x-list-columns": [
+      "module",
+      "tag",
+      "translation"
+    ],
+    "properties": {
+      "translations_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "languages_fkey": {
+        "title": "Language",
+        "x-foreign-key": "languages",
+        "x-display-field": "lan_name",
+        "x-order": 1
+      },
+      "module" : {
+        "type": "string",
+        "x-order": 2
+      },
+      "tag" : {
+        "type": "string",
+        "x-order": 3
+      },
+      "translation" : {
+        "type": "string",
+        "x-order": 4
+      }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Available settis",
+    "x-id-field": "settings_pkey",
+    "x-list-columns": [
+      "setting_name"
+    ],
+    "properties": {
+      "settings_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "setting_name" : {
+        "type": "string",
+        "x-order": 1
+      }
+    }
+  },
+  "default_settings_values": {
+    "title": "Setting values",
+    "description": "Available settng values",
+    "x-id-field": "default_settings_values_pkey",
+    "x-list-columns": [
+      "setting_no",
+      "setting_value",
+      "setting_order",
+      "setting_properties"
+    ],
+    "properties": {
+      "default_settings_values_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "settings_fkey": {
+        "title": "Settings",
+        "x-foreign-key": "settings",
+        "x-display-field": "setting_name",
+        "x-order": 1
+      },
+      "setting_no" : {
+        "type": "integer",
+        "x-order": 1
+      },
+      "setting_value" : {
+        "type": "string",
+        "x-order": 2,
+        "format" : "textarea"
+      },
+      "setting_order" : {
+        "type": "integer",
+        "x-order": 3
+      },
+      "setting_properties" : {
+        "type": "string",
+        "x-order": 4,
+        "format" : "textarea"
+      },
+      "setting_backend_properties" : {
+        "type": "string",
+        "x-order": 5,
+        "format" : "textarea"
+      }
+    }
+  },
+  "last_used_basket_addresses": {
+    "title": "Default address",
+    "description": "Last used addresses",
+    "x-id-field": "last_used_basket_addresses_pkey",
+    "x-list-columns": [
+      "userid",
+      "company",
+      "address_type",
+      "name",
+      "address1",
+      "zipcode",
+      "city",
+      "country"
+    ],
+    "properties": {
+      "last_used_basket_addresses_pkey": {
+        "type": "integer",
+        "readOnly": true,
+        "x-hidden": 1
+      },
+      "name" : {
+        "type": "string",
+        "x-order": 1
+      },
+      "address1" : {
+        "type": "string",
+        "x-order": 2
+      },
+      "address2" : {
+        "type": "string",
+        "x-order": 3
+      },
+      "address3" : {
+        "type": "string",
+        "x-order": 4
+      },
+      "city" : {
+        "type": "string",
+        "x-order": 6
+      },
+      "zipcode" : {
+        "type": "string",
+        "x-order": 5
+      },
+      "country" : {
+        "type": "string",
+        "x-order": 7
+      },
+      "userid" : {
+        "type": "string",
+        "x-order": 8
+      },
+      "company" : {
+        "type": "string",
+        "x-order": 9
+      },
+      "address_type" : {
+        "type": "string",
+        "x-order": 10
+      }
+    }
+  }
 }

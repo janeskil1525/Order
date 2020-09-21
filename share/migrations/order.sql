@@ -929,3 +929,34 @@ ALTER TABLE sales_order_head
     ADD COLUMN externalids JSONB;
 
 -- 20 down
+
+-- 21 up
+
+DROP TABLE users;
+
+create table if not exists users
+(
+     users_pkey serial not null,
+     editnum bigint NOT NULL DEFAULT 1,
+     insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+     insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+     modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'System',
+     moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+     userid varchar not null UNIQUE,
+     username varchar,
+     passwd varchar not null,
+     active BOOLEAN NOT NULL DEFAULT false,
+     is_admin BOOLEAN NOT NULL DEFAULT false,
+     CONSTRAINT users_pkey PRIMARY KEY (users_pkey)
+);
+
+-- 21 down
+
+-- 22 up
+
+DELETE FROM menu;
+
+INSERT INTO menu (menu, menu_path, menu_order) VALUES ('Minion', '/minion/', 1);
+INSERT INTO menu (menu, menu_path, menu_order) VALUES ('Data', '/yancy/', 2);
+
+-- 22 down

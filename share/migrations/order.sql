@@ -960,3 +960,45 @@ INSERT INTO menu (menu, menu_path, menu_order) VALUES ('Minion', '/minion/', 1);
 INSERT INTO menu (menu, menu_path, menu_order) VALUES ('Data', '/yancy/', 2);
 
 -- 22 down
+
+-- 23 up
+CREATE SEQUENCE quote_no START 10000;
+
+create table if not exists quotes
+(
+    quotes_pkey serial not null,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    quote_no varchar(100) not null,
+    quotestatus VARCHAR NOT NULL DEFAULT 'NEW',
+    quotedate timestamp without time zone NOT NULL DEFAULT NOW(),
+    sent BOOLEAN NOT NULL DEFAULT false,
+    sentat TIMESTAMP NOT NULL DEFAULT '1900-01-01',
+    payload jsonb not null,
+    userid varchar not null ,
+    company varchar not null ,
+    supplier varchar not null ,
+    CONSTRAINT quotes_pkey PRIMARY KEY (quotes_pkey)
+
+) ;
+
+CREATE unique INDEX if not exists idx_quotes_no
+    ON public.quotes USING btree
+        (quote_no ASC NULLS LAST);
+
+CREATE INDEX if not exists idx_quotes_userid_company
+    ON quotes(userid, company);
+
+CREATE INDEX if not exists idx_quotes_userid
+    ON quotes(userid);
+
+CREATE INDEX if not exists idx_quotes_ompany
+    ON quotes(company);
+
+CREATE INDEX if not exists idx_quotes_ompany
+    ON quotes(supplier);
+
+-- 23 down

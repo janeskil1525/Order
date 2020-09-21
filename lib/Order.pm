@@ -54,7 +54,7 @@ sub startup {
 
   $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-  )->migrate(22);
+  )->migrate(23);
 
   my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp
@@ -176,6 +176,10 @@ sub startup {
   $auth_api->get('/v1/rfqs/load/:rfqs_pkey')->to('rfqs#load_rfq_api');
   $auth_api->post('/v1/rfqs/save/')->to('rfqs#save_rfq_api');
   $auth_api->post('/v1/rfqs/send/')->to('rfqs#send_rfq_api');
+  $auth_api->post('/v1/quotes/save/')->to('quotes#save_quote_api');
+  $auth_api->post('/v1/quotes/send/')->to('quotes#send_quote_api');
+  $auth_api->post('/v1/quotes/list/:quotestatus')->to('quotes#list_all_quotes_from_status_api');
+  $auth_api->post('/v1/quotes/load/:quotes_pkey/')->to('quotes#load_quote_api');
 
 }
 

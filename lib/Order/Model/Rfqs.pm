@@ -3,11 +3,9 @@ use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Try::Tiny;
 use Data::Dumper;
-
-our $VERSION = '0.3.6';
+use Order::Utils::Postgres::Columns;
 
 has 'pg';
-
 
 sub list_all_rfqs_from_status_p{
     my ($self, $companies_fkey, $rfqstatus) = @_;
@@ -31,7 +29,7 @@ sub save_rfq_p{
 
     return $self->pg->db->query_p(qq{
         INSERT INTO rfqs
-            (rfq_no, rfqstatus, regplate, note, users_fkey, companies_fkey, supplier_fkey)
+            (rfq_no, rfqstatus, regplate, note, userid, company, supplier)
         VALUES (?,?,?,?,?,?,?)
         ON CONFLICT (rfq_no)
             DO UPDATE SET moddatetime = now(), rfqstatus = ?, regplate = ?, note = ?, sent = ?
@@ -42,9 +40,9 @@ sub save_rfq_p{
             $data->{rfqstatus},
             $data->{regplate},
             $data->{note},
-            $data->{users_fkey},
-            $data->{companies_fkey},
-            $data->{supplier_fkey},
+            $data->{userid},
+            $data->{company},
+            $data->{supplier},
             $data->{rfqstatus},
             $data->{regplate},
             $data->{note},
@@ -53,6 +51,36 @@ sub save_rfq_p{
     );
 }
 
+sub save_rfq{
+    my ($self, $data) = @_;
+
+    $data->{rfq_no} = $self->getRfqNo() unless $data->{rfq_no};
+
+    my $rfq_no = $self->pg->db->query(qq{
+        INSERT INTO rfqs
+            (rfq_no, rfqstatus, regplate, note, userid, company, supplier)
+        VALUES (?,?,?,?,?,?,?)
+        ON CONFLICT (rfq_no)
+            DO UPDATE SET moddatetime = now(), rfqstatus = ?, regplate = ?, note = ?, sent = ?
+        RETURNING rfq_no
+    },
+        (
+            $data->{rfq_no},
+            $data->{rfqstatus},
+            $data->{regplate},
+            $data->{note},
+            $data->{userid},
+            $data->{company},
+            $data->{supplier},
+            $data->{rfqstatus},
+            $data->{regplate},
+            $data->{note},
+            $data->{sent}
+        )
+    )->hash->{rfq_no};
+
+    return $rfq_no;
+}
 sub load_rfq_p{
     my ($self, $rfqs_pkey) = @_;
 
@@ -93,7 +121,7 @@ sub set_setdefault_data{
     my ($self, $data) = @_;
 
     my $fields;
-    ($data, $fields) = Daje::Utils::Postgres::Columns->new(
+    ($data, $fields) = Order::Utils::Postgres::Columns->new(
         pg => $self->pg
     )->set_setdefault_data($data, 'rfqs');
 
@@ -114,7 +142,4 @@ sub set_sent_at{
         }
     );
 }
-1;
-
-
 1;

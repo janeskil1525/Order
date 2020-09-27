@@ -3,6 +3,7 @@ use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Order::Model::Rfqs;
 use Order::Helper::Rfqs::Messenger;
+use Daje::Utils::Sentinelsender;
 
 use Mojo::JSON qw{decode_json encode_json};
 use Mojo::Promise;
@@ -94,18 +95,29 @@ sub _send_rfq{
 sub send_rfq{
     my ($pg, $config, $data) = @_;
 
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+    my $result = try {
+        my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime();
 
-    $year = "20$year";
-    $data->{sentat} = sprintf("%04d-%02d-%02d %02d:%02d:%02d",$year, $mon, $mday, $hour, $min, $sec);
-    $data->{messagetype} = 'rfq_sent';
+        $year = "20$year";
+        $data->{sentat} = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $mon, $mday, $hour, $min, $sec);
+        $data->{messagetype} = 'rfq_sent';
 
-    Order::Helper::Rfqs::Messenger->new(
-        pg     => $pg,
-        config => $config
-    )->send_message($data);
+        Order::Helper::Rfqs::Messenger->new(
+            pg     => $pg,
+            config => $config
+        )->send_message($data);
 
-    set_sent_at($data);
+        Order::Model::Rfqs->new(
+            pg => $pg
+        )->set_sent_at($data);
+        return 'Success';
+    } catch {
+        Daje::Utils::Sentinelsender->new()->capture_message(
+            '', 'Order::Helper::Rfqs::send_rfq_message', 'send_rfq', (caller(0))[3], $_
+        );
+        return $_;
+    };
+    return $result;
 }
 
 sub send_rfq_test {

@@ -134,11 +134,13 @@ sub set_sent_at{
     return $self->pg->db->update(
         'rfqs',
         {
-            sentat => $data->{sentat},
-            sent   => 'true',
+            sentat      => $data->{sentat},
+            sent        => 'true',
+            moddatetime => $data->{sentat},
+            rfqstatus   => 'SENT',
         },
         {
-            rfqs_pkey => $data->{rfqs_pkey}
+            rfqs_pkey => $data->{rfq}->{rfqs_pkey}
         }
     );
 }

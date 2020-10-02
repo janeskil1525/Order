@@ -44,7 +44,7 @@ sub get_order_for_export {
 
     my $hash;
     my $sales_order_head_pkey = 0;
-    $hash = $order_head->hash if $order_head->rows();
+    $hash = $order_head->hash if $order_head->rows() > 0;
     if($hash){
         $sales_order_head_pkey = $hash->{sales_order_head_pkey};
     }
@@ -56,9 +56,12 @@ sub get_summary{
 
     my $orderhead = $self->load_order_head(
         $order_head_pkey
-    )->hash;
+    );
 
-    return "Order nr. " . $orderhead->{order_no} . "\n Order datum " . substr($orderhead->{orderdate},0,10);
+    return "Order nr. " . $orderhead->{order_no} . "\n Order datum " . substr($orderhead->{orderdate},0,10)
+        if $orderhead;
+
+    return;
 }
 
 sub get_company{
@@ -86,23 +89,30 @@ sub get_userid {
 sub companies_fkey{
     my ($self, $sales_order_head_pkey) = @_;
 
-    return $self->pg->db->select(
+    my $result = $self->pg->db->select(
         'sales_order_head', 'companies_fkey',
         {
             sales_order_head_pkey => $sales_order_head_pkey
         }
-    )->hash->{companies_fkey};
+    );
+    my $hash = 0;
+    $hash = $result->hash->{companies_fkey} if $result->rows;
+    return $hash;
 }
 
 sub load_order_head{
     my ($self, $sales_order_head_pkey) = @_;
 
-    return $self->pg->db->select(
+    my $result = $self->pg->db->select(
         'sales_order_head', '*',
         {
             sales_order_head_pkey => $sales_order_head_pkey
         }
     );
+
+    my $hash;
+    $hash = $result->hash if $result->rows() > 0;
+    return $hash;
 }
 
 sub load_order_head_p{

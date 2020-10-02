@@ -2,7 +2,6 @@ package Order::Helper::Rfqs;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Order::Model::Rfqs;
-use Order::Helper::Rfqs::Messenger;
 use Daje::Utils::Sentinelsender;
 
 use Mojo::JSON qw{decode_json encode_json};
@@ -12,12 +11,6 @@ use Try::Tiny;
 
 has 'pg';
 has 'minion';
-
-sub init {
-    my ($self, $minion) = @_;
-
-    $minion->minion->add_task(send_rfq => \&_send_rfq);
-}
 
 sub list_all_rfqs_from_status_p{
     my ($self, $companies_fkey, $rfqstatus) = @_;
@@ -52,18 +45,25 @@ sub send_rfq_message {
         )->save_rfq($data);
 
         say "rfq_no " . $rfq_no;
-        my $message->{rfq} = Order::Model::Rfqs->new(
+        my $message->{payload} = Order::Model::Rfqs->new(
             pg => $self->pg
         )->load_from_rfqno($rfq_no)->hash;
 
-        $message->{type} = 'rfq_sent';
-        $message->{customer} = $data->{company};
-        $message->{customer_user} = $data->{userid};
-        $message->{supplier} = $data->{supplier};
+        $message->{payload}->{type} = 'rfq_sent';
+        $message->{company} = $data->{supplier};
+        $message->{companies_fkey} = $data->{companies_fkey};
+        $minion->enqueue('send_message' => [ $message ] => { priority => 0 });
 
-        $minion->enqueue('send_rfq' => [ $message ] => { priority => 0 });
+        $message->{company} = $data->{company};
+        $message->{companies_fkey} = $data->{supplierfkey};
+        $message->{payload}->{type} = 'rfq_received';
+        $minion->enqueue('send_message' => [ $message ] => { priority => 0 });
 
-        return $rfq_no;
+        Order::Model::Rfqs->new(
+            pg => $self->pg
+        )->set_sent_at($data);
+
+        return 'Success';
     } catch {
         say $_;
         $self->capture_message(
@@ -73,7 +73,6 @@ sub send_rfq_message {
     };
 
     return $result;
-
 }
 
 sub set_setdefault_data{
@@ -82,58 +81,6 @@ sub set_setdefault_data{
     return Order::Model::Rfqs->new(
         pg => $self->pg
     )->set_setdefault_data($data);
-}
-
-sub _send_rfq{
-    my($job, $data) = @_;
-
-    my $result = send_rfq($job->app->pg, $job->pp->config, $data);
-
-    $job->finish({ status => $result});
-}
-
-sub send_rfq{
-    my ($pg, $config, $data) = @_;
-
-    my $result = try {
-        my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime();
-
-        $year = "20$year";
-        $data->{sentat} = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $mon, $mday, $hour, $min, $sec);
-        $data->{messagetype} = 'rfq_sent';
-
-        Order::Helper::Rfqs::Messenger->new(
-            pg     => $pg,
-            config => $config
-        )->send_message($data);
-
-        Order::Model::Rfqs->new(
-            pg => $pg
-        )->set_sent_at($data);
-        return 'Success';
-    } catch {
-        Daje::Utils::Sentinelsender->new()->capture_message(
-            '', 'Order::Helper::Rfqs::send_rfq_message', 'send_rfq', (caller(0))[3], $_
-        );
-        return $_;
-    };
-    return $result;
-}
-
-sub send_rfq_test {
-    my ($self, $pg, $config, $data) = @_;
-
-    my $result = send_rfq($pg, $config, $data);
-
-    return $result;
-}
-
-sub set_sent_at{
-    my ($self, $data) = @_;
-
-    return Order::Model::Rfqs->new(
-        pg => $self->pg
-    )->set_sent_at($data);
 }
 
 1;

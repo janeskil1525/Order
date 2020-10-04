@@ -18,7 +18,7 @@ sub get_summary{
 
     my $orderhead = $self->load_order_head(
         $order_head_pkey
-    )->hash;
+    );
 
     return "Order nr. " . $orderhead->{order_no} . "\n Order datum " . substr($orderhead->{orderdate},0,10);
 }
@@ -48,23 +48,31 @@ sub get_userid{
 sub companies_fkey{
     my ($self, $order_head_pkey) = @_;
 
-    return $self->pg->db->select(
-        'order_head', 'companies_fkey',
+    my $result = $self->pg->db->select(
+        'purchase_order_head', 'companies_fkey',
         {
-            order_head_pkey => $order_head_pkey
+            purchase_order_head_pkey => $order_head_pkey
         }
-    )->hash->{companies_fkey};
+    );
+
+    my $hash = 0;
+    $hash = $result->hash->{companies_fkey} if $result->rows > 0;
+    return $hash;
 }
 
 sub load_order_head{
     my ($self, $order_head_pkey) = @_;
 
-    return $self->pg->db->select(
+    my $result =  $self->pg->db->select(
         'purchase_order_head', '*',
         {
             purchase_order_head_pkey => $order_head_pkey
         }
     );
+
+    my $hash;
+    $hash = $result->hash if $result->rows;
+    return $hash;
 }
 
 sub load_order_head_p{

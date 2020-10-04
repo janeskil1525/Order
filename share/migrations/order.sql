@@ -1002,3 +1002,11 @@ CREATE INDEX if not exists idx_quotes_ompany
     ON quotes(supplier);
 
 -- 23 down
+
+-- 24 up
+ALTER TABLE sales_order_head
+    ADD COLUMN companies_fkey BIGINT NOT NULL DEFAULT 0;
+
+ALTER TABLE purchase_order_head
+    ADD COLUMN companies_fkey BIGINT NOT NULL DEFAULT 0;
+-- 24 down

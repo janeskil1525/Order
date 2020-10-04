@@ -1,4 +1,4 @@
-package Order::Helper::Order::Notice;
+package Order::Helper::Messenger::Notice;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Mojo::UserAgent;
@@ -12,9 +12,7 @@ has 'error' => 'false';
 has 'company' => '';
 has 'userid' => '';
 has 'type' => 'notice';
-
-has 'config';
-has 'pg';
+has 'companies_fkey' => 0;
 
 sub get_payload{
     my $self= shift;
@@ -28,29 +26,11 @@ sub get_payload{
     $payload->{type} = $self->type();
     $payload->{message} = $self->message();
     $payload->{error} = $self->error();
+    $payload->{companies_fkey} = $self->companies_fkey();
+
 
     return $payload;
 }
 
-sub send_notice {
-    my ($self, $payload) = @_;
 
-    my $ua = Mojo::UserAgent->new();
-    my $key = $self->config->{webshop}->{key};
-
-    my $address = $self->config->{webshop}->{address} . $self->config->{webshop}->{messenger_endpoint};
-    my $tx = $ua->post(
-        $address => {
-            Accept => '*/*', 'X-Token-Check' => $key
-        } => json => $payload
-    );
-
-   if(not $tx->result->is_success){
-        say $tx->result->message;
-        $self->capture_message(
-            '','Order::Helper::Order::Notice::send_notice', (ref $self), (caller(0))[3], $tx->result->message
-        );
-    }
-
-}
 1;

@@ -1,7 +1,9 @@
 package Order::Controller::Rfqs;
 use Mojo::Base 'Mojolicious::Controller';
 
+use Scalar::Util qw(looks_like_number);
 use Mojo::JSON qw{decode_json};
+use Order::Helper::Translations;
 use Data::Dumper;
 
 sub list_all_rfqs_from_status_api{
@@ -61,7 +63,7 @@ sub load_rfq_api{
             $result->finish;
             ($rfq, $field_list) = $self->rfqs->set_setdefault_data($rfq);
 
-            my $detail = Daje::Utils::Translations->new(
+            my $detail = Order::Helper::Translations->new(
                 pg => $self->pg
             )->details_headers(
                 'rfqs', $field_list, $rfq, 'swe');
@@ -87,15 +89,6 @@ sub save_rfq_api{
     my $data = decode_json($body);
     delete $data->{header_data} if exists $data->{header_data};
 
-    unless (exists $data->{companies_fkey} and $data->{companies_fkey} > 0){
-        $data->{companies_fkey} = $self->companies->load_loggedincompany($token)->{companies_pkey};
-    }
-
-    unless (exists $data->{users_fkey} and $data->{users_fkey} > 0){
-        $data->{users_fkey} = $self->user->load_token_user(
-            $token
-        )->hash->{users_pkey};
-    }
     $data->{sent} = 'false' unless $data->{sent};
     $data->{rfqstatus} = 'NEW' unless $data->{rfqstatus};
 
@@ -108,6 +101,7 @@ sub save_rfq_api{
     })->catch(sub{
         my $err = shift;
 
+        say "[Order::Controller::Rfqs::save_rfq_api] " . $err;
         $self->render(json => {result => {error => $err} });
     })->wait;
 }
@@ -121,30 +115,18 @@ sub send_rfq_api{
 
     my $body = $self->req->body;
     my $data = decode_json($body);
+    say "send_rfq_api " . Dumper($data);
     delete $data->{header_data} if exists $data->{header_data};
 
-    unless (exists $data->{companies_fkey} and $data->{companies_fkey} > 0){
-        $data->{companies_fkey} = $self->companies->load_loggedincompany(
-            $token
-        )->{companies_pkey};
-    }
-
-    unless (exists $data->{users_fkey} and $data->{users_fkey} > 0){
-        $data->{users_fkey} = $self->user->load_token_user(
-            $token
-        )->hash->{users_pkey};
-    }
 
     $data->{rfqstatus} = 'NEW' unless $data->{rfqstatus};
     $data->{sent} = 'true';
-    $self->rfqs->send_rfq_p($data)->then(sub{
-        my $rfq_no = shift;
+    my $result = $self->rfqs->send_rfq_message($data, $self->app->minion);
 
-        $self->render(json => {rfq_no => $rfq_no, result => 'Success'});
-    })->catch(sub{
-        my $err = shift;
-
-        $self->render(json => {error => $err});
-    })->wait;
+    if(looks_like_number($result)){
+        $self->render(json => {rfq_no => $result, result => 'Success'});
+    } else {
+        $self->render(json => {rfq_no => 0, result => $result});
+    }
 }
 1;

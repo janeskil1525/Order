@@ -5,6 +5,7 @@ use Order::Model::Menu;
 use Order::Model::Users;
 use Order::Helper::Shoppingcart;
 use Order::Helper::Shoppingcart::Converter;
+use Order::Helper::Rfqs;
 
 use Mojo::Pg;
 use Mojo::JSON qw{encode_json from_json};
@@ -41,6 +42,7 @@ sub startup {
   $self->helper(shoppingcart => sub { state $shoppingcart = Order::Helper::Shoppingcart->new(pg => shift->pg)});
   $self->shoppingcart->config($self->config);
   $self->helper(converter => sub { state $converter = Order::Helper::Shoppingcart::Converter->new(pg => shift->pg)});
+  $self->helper(rfqs => sub { state $converter = Order::Helper::Rfqs->new(pg => shift->pg)});
 
 
   say $self->pg->db->query('select version() as version')->hash->{version};
@@ -54,7 +56,7 @@ sub startup {
 
   $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-  )->migrate(23);
+  )->migrate(24);
 
   my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp
@@ -64,6 +66,7 @@ sub startup {
   $self->plugin('Subscription');
 
   $self->converter->init($self->minion);
+  $self->rfqs($self->minion);
 
   # Router
   my $auth_route = $self->routes->under( '/app', sub {
@@ -90,7 +93,6 @@ sub startup {
     #return 1 if $c->user->authenticate($c->req->headers->header('X-Token-Check'));
     # Not authenticated
     $c->render(json => '{"error":"unknown error"}');
-    return undef;
     return undef;
   } );
 

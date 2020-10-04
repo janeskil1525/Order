@@ -45,10 +45,10 @@ sub create_orion_order {
         'newsletteremail' => '',
         'newsletter' => '',
         'text' => '',
-        'paymenttype'=> '' ,
-        'orders' => [],
+        'paymenttype'=> '',
+        #'orders' => [],
         'rows' => $orionorderitems,
-        'vrno' => [],
+       # 'vrno' => '',
         'invfee' => 0,
     )->hash();
 
@@ -61,27 +61,29 @@ sub create_orion_orderitems{
     my @orionitems;
     my $position = 1;
     foreach my $item (@{$orderitems}) {
+        $item->{extradata_hash}->{articleno} = "" unless $item->{extradata_hash}->{articleno};
+        $item->{extradata_hash}->{originalno} = "" unless $item->{extradata_hash}->{originalno};
+
         my $orionitem = Order::Helper::Orion::Data::OrderItem->new(
             'articleno'          => $item->{extradata_hash}->{articleno},
             'carbreaker'         => $item->{extradata_hash}->{carbreaker},
             'customerno'         => '1234',
             'customerorderno'    => '234234',
             'discount'           => 0,
-            'kind'               => 'D',
+            'kind'               => 'X',
             #'orderingcarbreaker' => 'F',
             'originalno'         => $item->{extradata_hash}->{originalno},
-            'partdesignation'    => '3',
+            #'partdesignation'    => '3',
             'partid'             => $item->{extradata_hash}->{id},
             'position'           => $position,
             'quality'            => $item->{extradata_hash}->{quality},
             'quantity'           => 1,
-            'referencenumber'    => $item->{extradata_hash}->{referencenumber},
+            'referencenumber'    => "$item->{extradata_hash}->{referencenumber}",
             'remark'             => $item->{extradata_hash}->{remark},
             'sbrcarcode'         => $item->{extradata_hash}->{sbrcarcode},
             'sbrpartcode'        => $item->{extradata_hash}->{sbrpartcode},
             'lagawarranty'       => '',
             'priceperitem'       => $item->{extradata_hash}->{price},
-            'type'               => 1,
         )->hash();
         push @orionitems, $orionitem;
         $position++;

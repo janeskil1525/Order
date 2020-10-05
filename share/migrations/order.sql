@@ -1010,3 +1010,35 @@ ALTER TABLE sales_order_head
 ALTER TABLE purchase_order_head
     ADD COLUMN companies_fkey BIGINT NOT NULL DEFAULT 0;
 -- 24 down
+
+-- 25 up
+
+CREATE SEQUENCE wantedno START 10000;
+
+create table if not exists wanted
+(
+    wanted_pkey serial not null,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    insdatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown',
+    moddatetime timestamp without time zone NOT NULL DEFAULT NOW(),
+    wanted_no varchar(100) not null,
+    wantedstatus VARCHAR NOT NULL DEFAULT 'NEW',
+    wanteddate timestamp without time zone NOT NULL DEFAULT NOW(),
+    payload JSONB NOT NULL,
+    sent BOOLEAN NOT NULL DEFAULT false,
+    sentat TIMESTAMP NOT NULL DEFAULT '1900-01-01',
+    userid varchar not null default '',
+    company varchar not null default '',
+    supplier_fkey bigint not null default 0,
+    supplier varchar not null default '',
+    CONSTRAINT wanted_pkey PRIMARY KEY (wanted_pkey)
+
+);
+
+CREATE unique INDEX idx_wanted_wanted_no_no
+    ON public.wanted USING btree
+        (wanted_no);
+
+-- 25 down

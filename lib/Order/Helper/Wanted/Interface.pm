@@ -25,7 +25,7 @@ sub register {
 sub list_all_wanted_from_status_p{
     my ($self, $companies_fkey, $wantedstatus) = @_;
 
-    return Daje::Model::Wanted->new(
+    return Order::Model::Wanted->new(
         pg => $self->pg
     )->list_all_wanted_from_status_p($companies_fkey, $wantedstatus);
 }
@@ -33,7 +33,7 @@ sub list_all_wanted_from_status_p{
 sub load_wanted_p{
     my ($self, $wanted_pkey) = @_;
 
-    return Daje::Model::Wanted->new(
+    return Order::Model::Wanted->new(
         pg => $self->pg
     )->load_wanted_p($wanted_pkey);
 }
@@ -41,7 +41,7 @@ sub load_wanted_p{
 sub save_wanted_p{
     my($self, $data) = @_;
 
-    return Daje::Model::Wanted->new(
+    return Order::Model::Wanted->new(
         pg => $self->pg
     )->save_wanted_p($data);
 }
@@ -49,7 +49,7 @@ sub save_wanted_p{
 sub set_sent_at{
     my ($self, $data) = @_;
 
-    return Daje::Model::Wanted->new(
+    return Order::Model::Wanted->new(
         pg => $self->pg
     )->set_sent_at($data);
 }
@@ -57,7 +57,7 @@ sub set_sent_at{
 sub set_setdefault_data{
     my ($self, $data) = @_;
 
-    return Daje::Model::Wanted->new(
+    return Order::Model::Wanted->new(
         pg => $self->pg
     )->set_setdefault_data($data);
 }
@@ -65,29 +65,12 @@ sub set_setdefault_data{
 sub send_wanted_p{
     my ($self, $data) = @_;
 
-    my $wanted_p = Daje::Model::Wanted->new(
+    my $wanted_p = Order::Model::Wanted->new(
         pg => $self->pg
     )->save_wanted_p($data);
 
-    my $customer_p = Daje::Model::Companies->new(
-        pg => $self->pg
-    )->load_company_only_p(
-        $data->{companies_fkey}
-    );
 
-    my $supplier_p = Daje::Model::Companies->new(
-        pg => $self->pg
-    )->load_company_only_p(
-        $data->{supplier_fkey}
-    );
-
-    my $user_p =  Daje::Model::User->new(
-        pg => $self->pg
-    )->load_user_p(
-        $data->{users_fkey}
-    );
-
-    return Mojo::Promise->all($wanted_p, $customer_p, $user_p, $supplier_p)->then(sub{
+    return Mojo::Promise->all($wanted_p )->then(sub{
         my ($wanted, $customer, $user, $supplier) = @_;
 
         my $wanted_no = $wanted->[0]->hash->{wanted_no};

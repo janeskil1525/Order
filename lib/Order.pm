@@ -42,10 +42,17 @@ sub startup {
   $self->helper(shoppingcart => sub { state $shoppingcart = Order::Helper::Shoppingcart->new(pg => shift->pg)});
   $self->shoppingcart->config($self->config);
   $self->helper(converter => sub { state $converter = Order::Helper::Shoppingcart::Converter->new(pg => shift->pg)});
-  $self->helper(rfqs => sub { state $converter = Order::Helper::Rfqs->new(pg => shift->pg)});
-
-
-  say $self->pg->db->query('select version() as version')->hash->{version};
+  $self->helper(
+      rfqs => sub {
+        state $converter = Order::Helper::Rfqs->new(pg => shift->pg)
+      }
+  );
+  $self->helper(
+      wanted => sub {
+        state $wanted = Order::Helper::Wanted::Interface->new(pg => shift->pg)
+      }
+  );
+  say "Order " . $self->pg->db->query('select version() as version')->hash->{version};
 
   $self->renderer->paths([
       $self->dist_dir->child('templates'),
@@ -182,6 +189,9 @@ sub startup {
   $auth_api->post('/v1/quotes/send/')->to('quotes#send_quote_api');
   $auth_api->post('/v1/quotes/list/:quotestatus')->to('quotes#list_all_quotes_from_status_api');
   $auth_api->post('/v1/quotes/load/:quotes_pkey/')->to('quotes#load_quote_api');
+
+  $auth_api->post('/v1/wanted/save/')->to('wanted#save_wanted_api');
+  $auth_api->post('/v1/wanted/create/')->to('wanted#create_wanted_api');
 
 }
 

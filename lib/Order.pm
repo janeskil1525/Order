@@ -7,6 +7,8 @@ use Order::Helper::Shoppingcart;
 use Order::Helper::Shoppingcart::Converter;
 use Order::Helper::Rfqs;
 
+use Order::Helper::Orion::Reservation;
+
 use Mojo::Pg;
 use Mojo::JSON qw{encode_json from_json};
 use Mojo::File;
@@ -41,7 +43,17 @@ sub startup {
   $self->helper(order => sub { state $order = Order::Helper::Order->new(pg => shift->pg)});
   $self->helper(shoppingcart => sub { state $shoppingcart = Order::Helper::Shoppingcart->new(pg => shift->pg)});
   $self->shoppingcart->config($self->config);
-  $self->helper(converter => sub { state $converter = Order::Helper::Shoppingcart::Converter->new(pg => shift->pg)});
+  $self->helper(
+      converter => sub {
+        state $converter = Order::Helper::Shoppingcart::Converter->new(pg => shift->pg)
+      }
+  );
+  $self->helper(
+      orionreservation => sub {
+        state $orionreservation = Order::Helper::Orion::Reservation->new(config => shift->config)
+      }
+  );
+
   $self->helper(
       rfqs => sub {
         state $converter = Order::Helper::Rfqs->new(pg => shift->pg)
@@ -63,7 +75,7 @@ sub startup {
 
   $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-  )->migrate(25);
+  )->migrate(26);
 
   my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp

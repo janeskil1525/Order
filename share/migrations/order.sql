@@ -1041,4 +1041,10 @@ CREATE unique INDEX idx_wanted_wanted_no_no
     ON public.wanted USING btree
         (wanted_no);
 
--- 25 down
+
+-- 26 up
+
+ALTER TABLE basket_item
+    ADD COLUMN external_reservation VARCHAR NOT NULL DEFAULT '';
+
+-- 26 down

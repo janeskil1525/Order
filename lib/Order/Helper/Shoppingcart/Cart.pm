@@ -16,7 +16,6 @@ use Try::Tiny;
 has 'pg';
 has 'config';
 
-   
 sub getOpenBasketId{
     my ($self, $users_pkey) = @_;
 

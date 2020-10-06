@@ -84,6 +84,7 @@ sub upsertItem{
 			rfq_note    => $data->{rfq_note},
 			extradata   => $data->{extradata},
 			settings    => to_json($data->{supplier}->{settings}),
+			external_reservation => $data->{external_reservation},
 		},
 			{
 				on_conflict => \[

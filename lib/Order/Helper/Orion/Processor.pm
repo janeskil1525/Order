@@ -31,12 +31,6 @@ sub process_order {
     return $result;
 }
 
-sub add_reservation {
-    my ($self, $stockitem) = @_;
-
-
-}
-
 sub send_order {
     my ($self, $orion_order, $ordehead) = @_;
 

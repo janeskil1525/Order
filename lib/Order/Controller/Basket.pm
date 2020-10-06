@@ -34,14 +34,58 @@ sub delete_api{
 sub upsertitem{
     my $self = shift;
 
+    my $id = 0;
     my $data = $self->req->body;
-    my $result = $self->shoppingcart->upsertItem($data);
-    
-    if($result){
-        $self->render(json => $result);
-    }else{
-        Daje::Utils::Sentinelsender->new()->capture_message('','WebsShop', (ref $self), (caller(0))[3], "Upsert item failed");
-        $self->render(json => {result => "NOK"});    
+    say Dumper($data);
+    if($data->{supplier}->{settings}->{Has_Active_Orion}->{setting_properties}->{has_orion})
+    {
+        $id = $self->orionreservation->check_reservation($data->{stockitem});
+    }
+    if($id == 0){
+        my $reservation = 0;
+        if($data->{supplier}->{settings}->{Has_Active_Orion}->{setting_properties}->{has_orion})
+        {
+            $self->orionreservation->endpoint_path(
+                $self->app->config->{orion}->{reservation_endpoint_path}
+            );
+            $self->orionreservation->endpoint_address(
+                $self->app->config->{orion}->{address}
+            );
+            $reservation = $self->orionreservation->add_reservation(
+                $data->{stockitem},
+                $data->{supplier}->{company}->{company},
+                2,
+                $data->{supplier}->{settings}->{Orion_Login_Data}->{setting_properties}
+            );
+        }
+        $data->{external_reservation} = $reservation;
+        my $result = $self->shoppingcart->upsertItem($data);
+
+        if($result){
+            $self->render(
+                json => {
+                    result => $result,
+                    reservation => $reservation
+                }
+            );
+        }else{
+            Daje::Utils::Sentinelsender->new()->capture_message(
+                '','WebsShop', (ref $self), (caller(0))[3], "Upsert item failed"
+            );
+            $self->render(
+                json => {
+                    result => "ERROR",
+                    message => "Kunde inte spara denna del, var vänlig och testa igen !"
+                }
+            );
+        }
+    } else {
+        $self->render(
+            json => {
+                result => "RESERVED",
+                message => "Tyvärr har någon annan användare redan köpt denna artikel, vänligen välj en annan del !"
+            }
+        );
     }
 }
 

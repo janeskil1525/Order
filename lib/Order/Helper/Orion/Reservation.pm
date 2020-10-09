@@ -1,6 +1,8 @@
 package Order::Helper::Orion::Reservation;
 use Mojo::Base 'Order::Helper::Orion::Communicator::Base';
 
+use Mojo::JSON qw {to_json};
+
 use Order::Helper::Orion::Database::Orion;
 use Order::Helper::Orion::Database::Reservation;
 use Order::Helper::Orion::Data::Reservation;
@@ -43,16 +45,25 @@ sub add_reservation {
     my $reservation = Order::Helper::Orion::Data::Reservation->new(
         carbreaker      => $company,
         partid          => $stockitem,
-        reservationtype => $type
+        reservationtype => $type,
+        id              => 0,
+        #expired         => DateTime->now(),
+        extreference    => 'Osatt',
+        extsource       => 'LagaPro',
+        #lastupdate      => DateTime->now(),
+        usersign        => 'Jan'
     )->hash();
 
+    $self->endpoint_address($self->config->{orion}->{address});
+    $self->endpoint_path($self->config->{orion}->{reservation_endpoint_path});
     $self->username($settings->{username});
     $self->password($settings->{password});
 
     my $result;
-    my $reservation_json = to_json [$reservation];
+    my $reservations;
+    push @{$reservations->{reservations}}, $reservation;
     my $res = try {
-        $self->post_data($reservation_json)->result;
+        $self->post_data($reservations)->result;
     } catch {
         say $_;
         $self->capture_message(

@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Mojo::Pg;
 
 use Order::Helper::Orion::Reservation;;
 

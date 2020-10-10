@@ -6,6 +6,8 @@ use Order::Model::Users;
 use Order::Helper::Shoppingcart;
 use Order::Helper::Shoppingcart::Converter;
 use Order::Helper::Rfqs;
+use Order::Helper::Settings;
+use Order::Helper::Translations;
 
 use Order::Helper::Orion::Reservation;
 
@@ -46,6 +48,16 @@ sub startup {
   $self->helper(
       converter => sub {
         state $converter = Order::Helper::Shoppingcart::Converter->new(pg => shift->pg)
+      }
+  );
+  $self->helper(
+      translations => sub {
+        state $translations = Order::Helper::Translations->new(pg => shift->pg)
+      }
+  );
+  $self->helper(
+      settings => sub {
+        state $settings = Order::Helper::Settings->new(pg => shift->pg)
       }
   );
   $self->helper(
@@ -193,10 +205,11 @@ sub startup {
   $auth_api->get('/v1/basket/item/load/:basket_item_pkey')->to('basket#basket_items_load_api');
   $auth_api->post('/v1/basket/checkout/')->to('basket#checkout');
 
-  $auth_api->get('/v1/rfqs/list/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_api');
+  $auth_api->get('/v1/rfqs/list/:company/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_api');
   $auth_api->get('/v1/rfqs/load/:rfqs_pkey')->to('rfqs#load_rfq_api');
   $auth_api->post('/v1/rfqs/save/')->to('rfqs#save_rfq_api');
   $auth_api->post('/v1/rfqs/send/')->to('rfqs#send_rfq_api');
+
   $auth_api->post('/v1/quotes/save/')->to('quotes#save_quote_api');
   $auth_api->post('/v1/quotes/send/')->to('quotes#send_quote_api');
   $auth_api->post('/v1/quotes/list/:quotestatus')->to('quotes#list_all_quotes_from_status_api');

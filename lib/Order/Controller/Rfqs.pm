@@ -11,31 +11,18 @@ sub list_all_rfqs_from_status_api{
 
     $self->render_later;
     my $response;
-    my $token = $self->req->headers->header('X-Token-Check');
-    my $fields_list = $self->settings->get_settings_list('Rfqs_grid_fields', $token);
+    my $fields_list = $self->settings->get_settings_list('Rfqs_grid_fields');
     my $rfqstatus = $self->param('rfqstatus');
-    say $rfqstatus;
-    $self->user->get_company_fkey_from_token_p($token)->then(sub{
-        my $collection = shift;
+    my $company = $self->param('company');
 
-        my $company_pkey = $collection->hash->{companies_fkey};
-        $self->rfqs->list_all_rfqs_from_status_p($company_pkey)->then(sub{
-            my $result = shift;
+    $self->rfqs->list_all_rfqs_from_status_p($company, $rfqstatus)->then(sub{
+        my $result = shift;
 
-            $response->{data} = $result->hashes->to_array;;
-            $response->{responses} = $result->rows;
-            $response->{headers} = $self->translations->grid_header('Rfqs_grid_fields',$fields_list,'swe');
+        $response->{data} = $result->hashes->to_array;;
+        $response->{responses} = $result->rows;
+        $response->{headers} = $self->translations->grid_header('Rfqs_grid_fields',$fields_list,'swe');
 
-            $self->render(json => $response);
-        })->catch(sub{
-            my $err = shift;
-
-            $response->{header_data} = '';
-            $response->{error} = $err;
-            say $err;
-            $self->render(json => $response);
-        })->wait;
-
+        $self->render(json => $response);
     })->catch(sub{
         my $err = shift;
 

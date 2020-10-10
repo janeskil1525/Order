@@ -25,7 +25,7 @@ sub get_company_setting {
 		$self->pg->db->query($stmt_company,($companies_pkey,  $setting)) ;
 	} catch {
 		$self->capture_message(
-			'', 'Daje-Utils-Settings', (ref $self), (caller(0))[3], $_
+			'', 'Order::Helper::Settings', (ref $self), (caller(0))[3], $_
 		);
         say $_;
 	};
@@ -53,7 +53,7 @@ sub get_company_setting_list{
 		$self->pg->db->query($stmt_company,($companies_pkey)) ;
 	} catch {
 		$self->capture_message(
-			'', 'Daje-Utils-Settings', (ref $self), (caller(0))[3], $_
+			'', 'Order::Helper::Settings', (ref $self), (caller(0))[3], $_
 		);
         say $_;
 	};
@@ -64,13 +64,13 @@ sub get_company_setting_list{
 }
 
 sub get_settings_list {
-	my ($self, $setting,) = @_;
+	my ($self, $setting) = @_;
 	
 	my $setting_value = try {
 		$self->get_settings($setting )->to_array();
 	} catch {
 		$self->capture_message(
-			'', 'Daje-Utils-Settings', (ref $self), (caller(0))[3], $_
+			'', 'Order::Helper::Settings', (ref $self), (caller(0))[3], $_
 		);
         say $_;
 	};
@@ -95,7 +95,7 @@ sub get_setting_value{
 		return $setting->{setting_value}
 	}catch{
 		$self->capture_message(
-			'', 'Daje-Utils-Settings', (ref $self), (caller(0))[3], $_
+			'', 'Order::Helper::Settings', (ref $self), (caller(0))[3], $_
 		);
         say $_;
 		return $_;
@@ -138,7 +138,9 @@ sub set_user_setting {
 		);
 		return 1;
 	} catch {
-		$self->capture_message('','Daje-Utils-Settings', (ref $self), (caller(0))[3],  $_ );
+		$self->capture_message(
+			'','DOrder::Helper::Settings', (ref $self), (caller(0))[3],  $_
+		);
 		say $_;
 		return 0;
 	};
@@ -195,7 +197,9 @@ sub set_grid_settings{
 		my $result = try {
 			$self->pg->db->query($stmt_grid, @args);
 		} catch {
-			$self->capture_message('','Daje-Utils-Settings', (ref $self), (caller(0))[3],  $_ );
+			$self->capture_message(
+				'','Order::Helper::Settings', (ref $self), (caller(0))[3],  $_
+			);
 			say $_;
 		};
 	}
@@ -217,7 +221,7 @@ sub get_settings{
 		$self->pg->db->query($stmt_default,($setting)) ;
 	}catch{
 		$self->capture_message(
-			'', 'Daje-Utils-Settings', (ref $self), (caller(0))[3], $_
+			'', 'Order::Helper::Settings', (ref $self), (caller(0))[3], $_
 		);
         say $_;
 	};
@@ -246,7 +250,7 @@ sub get_settings_group{
 		$self->pg->db->query($stmt_default,($settinggroup)) ;
 	}catch{
 		$self->capture_message(
-			'', 'Daje-Utils-Settings', (ref $self), (caller(0))[3], $_
+			'', 'Order::Helper::Settings', (ref $self), (caller(0))[3], $_
 		);
         say $_;
 	};

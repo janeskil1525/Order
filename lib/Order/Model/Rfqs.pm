@@ -8,17 +8,15 @@ use Order::Utils::Postgres::Columns;
 has 'pg';
 
 sub list_all_rfqs_from_status_p{
-    my ($self, $companies_fkey, $rfqstatus) = @_;
+    my ($self, $company, $rfqstatus) = @_;
 
     $rfqstatus = 'NEW' unless $rfqstatus;
 
     return $self->pg->db->query_p(
         qq{SELECT rfqs_pkey, rfq_no, rfqstatus, requestdate, regplate, note,
-         (SELECT userid || ' ' || username FROM users WHERE users_pkey = users_fkey) as user,
-          (SELECT name FROM companies WHERE companies_pkey = companies_fkey) as customer,
-           (SELECT name FROM companies WHERE companies_pkey = supplier_fkey) as supplier
-           FROM rfqs WHERE rfqstatus = ? AND companies_fkey = ?},
-        ($rfqstatus, $companies_fkey)
+        userid as user, company, supplier
+           FROM rfqs WHERE rfqstatus = ? AND company = ?},
+        ($rfqstatus, $company)
     );
 }
 

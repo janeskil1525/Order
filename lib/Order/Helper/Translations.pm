@@ -60,7 +60,7 @@ sub grid_header{
 			$header->{properties} = try{
 				from_json $field->{setting_properties};
 			}catch{
-				$self->capture_message('','Daje-Utils-Translations', (ref $self), (caller(0))[3], $_);
+				$self->capture_message('','Daje::Utils::Sentinelsender', (ref $self), (caller(0))[3], $_);
 				say $_;
 				return '';
 			};
@@ -89,7 +89,7 @@ sub get_translation_list{
 	my $translation_list = try{
 		$self->pg->db->query($stmt)->hashes->to_array
 	}catch{
-		$self->capture_message('','Daje-Utils-Translations', (ref $self), (caller(0))[3], $_);
+		$self->capture_message('','Daje::Utils::Sentinelsender', (ref $self), (caller(0))[3], $_);
 		say $_;
 	};
 	

@@ -1048,3 +1048,32 @@ ALTER TABLE basket_item
     ADD COLUMN external_reservation VARCHAR NOT NULL DEFAULT '';
 
 -- 26 down
+
+-- 27 up
+INSERT INTO translations (languages_fkey, module, tag, translation) VALUES
+(6, 'Rfqs_grid_fields', 'rfqs_pkey','Primärnyckel'),
+(6, 'Rfqs_grid_fields', 'rfq_no','Nummer'),
+(6, 'Rfqs_grid_fields', 'rfqstatus','Status'),
+(6, 'Rfqs_grid_fields', 'requestdate','Förfrågandatum'),
+(6, 'Rfqs_grid_fields', 'regplate','Reg. No.'),
+(6, 'Rfqs_grid_fields', 'userid','Användare'),
+(6, 'Rfqs_grid_fields', 'company','Företag'),
+(6, 'Rfqs_grid_fields', 'supplier','Leverantör'),
+(6, 'Rfqs_grid_fields', 'sent','Skickad'),
+(6, 'Rfqs_grid_fields', 'sentat','Skickad datum');
+
+INSERT INTO settings (settings_pkey, setting_name) VALUES (1, 'Rfqs_grid_fields');
+INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
+values  (1, 1, 'basket_item_pkey', 0, '{"visible":"false"}'),
+        (1, 2, 'rfq_no', 0, '{"visible":"true"}'),
+        (1, 3, 'rfqstatus', 0, '{"visible":"true"}'),
+        (1, 4, 'requestdate', 0, '{"visible":"true"}'),
+        (1, 5, 'regplate', 0, '{"visible":"true"}'),
+        (1, 6, 'userid', 0, '{"visible":"true"}'),
+        (1, 7, 'company', 0, '{"visible":"true"}'),
+        (1, 8, 'supplier', 0, '{"visible":"true"}'),
+        (1, 9, 'sent', 0, '{"visible":"true"}'),
+        (1, 10, 'sentat', 0, '{"visible":"true"}');
+
+
+-- 27 down

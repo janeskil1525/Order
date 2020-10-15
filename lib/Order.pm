@@ -205,7 +205,8 @@ sub startup {
   $auth_api->get('/v1/basket/item/load/:basket_item_pkey')->to('basket#basket_items_load_api');
   $auth_api->post('/v1/basket/checkout/')->to('basket#checkout');
 
-  $auth_api->get('/v1/rfqs/list/:company/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_api');
+  $auth_api->get('/v1/rfqs/list/supplier/:supplier/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_supplier_api');
+  $auth_api->get('/v1/rfqs/list/customer/:customer/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_customer_api');
   $auth_api->get('/v1/rfqs/load/:rfqs_pkey')->to('rfqs#load_rfq_api');
   $auth_api->post('/v1/rfqs/save/')->to('rfqs#save_rfq_api');
   $auth_api->post('/v1/rfqs/send/')->to('rfqs#send_rfq_api');

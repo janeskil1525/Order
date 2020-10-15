@@ -1064,7 +1064,7 @@ INSERT INTO translations (languages_fkey, module, tag, translation) VALUES
 
 INSERT INTO settings (settings_pkey, setting_name) VALUES (1, 'Rfqs_grid_fields');
 INSERT INTO default_settings_values (settings_fkey, setting_no, setting_value, setting_order, setting_properties)
-values  (1, 1, 'basket_item_pkey', 0, '{"visible":"false"}'),
+values  (1, 1, 'rfqs_pkey', 0, '{"visible":"false"}'),
         (1, 2, 'rfq_no', 0, '{"visible":"true"}'),
         (1, 3, 'rfqstatus', 0, '{"visible":"true"}'),
         (1, 4, 'requestdate', 0, '{"visible":"true"}'),

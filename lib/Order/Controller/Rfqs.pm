@@ -6,16 +6,43 @@ use Mojo::JSON qw{decode_json};
 use Order::Helper::Translations;
 use Data::Dumper;
 
-sub list_all_rfqs_from_status_api{
+sub list_all_rfqs_from_status_supplier_api{
     my $self = shift;
 
     $self->render_later;
     my $response;
     my $fields_list = $self->settings->get_settings_list('Rfqs_grid_fields');
     my $rfqstatus = $self->param('rfqstatus');
-    my $company = $self->param('company');
+    my $supplier= $self->param('supplier');
 
-    $self->rfqs->list_all_rfqs_from_status_p($company, $rfqstatus)->then(sub{
+    $self->rfqs->list_all_rfqs_from_status_p($supplier, $rfqstatus)->then(sub{
+        my $result = shift;
+
+        $response->{data} = $result->hashes->to_array;;
+        $response->{responses} = $result->rows;
+        $response->{headers} = $self->translations->grid_header('Rfqs_grid_fields',$fields_list,'swe');
+
+        $self->render(json => $response);
+    })->catch(sub{
+        my $err = shift;
+
+        $response->{header_data} = '';
+        $response->{error} = $err;
+        say $err;
+        $self->render(json => $response);
+    })->wait;
+}
+
+sub list_all_rfqs_from_status_customer_api{
+    my $self = shift;
+
+    $self->render_later;
+    my $response;
+    my $fields_list = $self->settings->get_settings_list('Rfqs_grid_fields');
+    my $rfqstatus = $self->param('rfqstatus');
+    my $supplier= $self->param('supplier');
+
+    $self->rfqs->list_all_rfqs_from_status_p($supplier, $rfqstatus)->then(sub{
         my $result = shift;
 
         $response->{data} = $result->hashes->to_array;;
@@ -50,9 +77,7 @@ sub load_rfq_api{
             $result->finish;
             ($rfq, $field_list) = $self->rfqs->set_setdefault_data($rfq);
 
-            my $detail = Order::Helper::Translations->new(
-                pg => $self->pg
-            )->details_headers(
+            my $detail = $self->translations->->details_headers(
                 'rfqs', $field_list, $rfq, 'swe');
 
             $rfq->{header_data} = $detail;

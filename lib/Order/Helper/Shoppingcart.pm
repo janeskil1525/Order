@@ -49,27 +49,27 @@ sub dropBasket{
 sub loadBasket{
 	my ($self, $basketid) = @_;
 	
-	my $settings = Order::Helper::Settings->new(pg => $self->pg);
-	my $grid_fields_list = $settings->get_settings_list('Basket_grid_fields' );
-	my $details_fields_list = $settings->get_settings_list('Basket_details_fields' );
-	my $address_fields_list = $settings->get_settings_list('Basket_address_fields' );
-	my $cart = Order::Helper::Shoppingcart::Cart->new(pg => $self->pg);
-    my $result = $cart->loadBasket($basketid, $grid_fields_list, $details_fields_list, $address_fields_list);
-	
-	return $result;
+	# my $settings = Order::Helper::Settings->new(pg => $self->pg);
+	# my $grid_fields_list = $settings->get_settings_list('Basket_grid_fields' );
+	# my $details_fields_list = $settings->get_settings_list('Basket_details_fields' );
+	# my $address_fields_list = $settings->get_settings_list('Basket_address_fields' );
+	# my $cart = Order::Helper::Shoppingcart::Cart->new(pg => $self->pg);
+    # my $result = $cart->loadBasket($basketid, $grid_fields_list, $details_fields_list, $address_fields_list);
+	#
+	# return $result;
 }
 
 sub upsertItem{
     my ($self, $item) = @_;
 	
-    my $data = decode_json($item);
-
-	my $cart = Order::Helper::Shoppingcart::Cart->new(
-		pg     => $self->pg,
-		config => $self->config,
-	);
-    my $result = $cart->upsertItem($data);
-	return $result;
+    # my $data = decode_json($item);
+	#
+	# my $cart = Order::Helper::Shoppingcart::Cart->new(
+	# 	pg     => $self->pg,
+	# 	config => $self->config,
+	# );
+    # my $result = $cart->upsertItem($data);
+	# return $result;
 }
 
 sub saveBasket{

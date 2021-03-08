@@ -1,6 +1,11 @@
 package Order;
 use Mojo::Base 'Mojolicious';
 
+use Mojo::Pg;
+use Mojo::JSON qw{encode_json from_json};
+use Mojo::File;
+use File::Share;
+
 use Order::Model::Menu;
 use Order::Model::Users;
 use Order::Helper::Shoppingcart;
@@ -8,13 +13,11 @@ use Order::Helper::Shoppingcart::Converter;
 use Order::Helper::Rfqs;
 use Order::Helper::Settings;
 use Order::Helper::Translations;
-
+use Order::Helper::Shoppingcart::Cart;
 use Order::Helper::Orion::Reservation;
 
-use Mojo::Pg;
-use Mojo::JSON qw{encode_json from_json};
-use Mojo::File;
-use File::Share;
+use Parameters::Helper::Client;
+use Translations::Helper::Client;
 
 $ENV{ORDER_HOME} = '/home/jan/Project/Order/'
     unless $ENV{ORDER_HOME};
@@ -45,6 +48,10 @@ sub startup {
   $self->helper(order => sub { state $order = Order::Helper::Order->new(pg => shift->pg)});
   $self->helper(shoppingcart => sub { state $shoppingcart = Order::Helper::Shoppingcart->new(pg => shift->pg)});
   $self->shoppingcart->config($self->config);
+
+  $self->helper(cart => sub { state $cart = Order::Helper::Shoppingcart::Cart->new(pg => shift->pg)});
+  $self->cart->config($self->config);
+
   $self->helper(
       converter => sub {
         state $converter = Order::Helper::Shoppingcart::Converter->new(pg => shift->pg)
@@ -52,14 +59,20 @@ sub startup {
   );
   $self->helper(
       translations => sub {
-        state $translations = Order::Helper::Translations->new(pg => shift->pg)
+        state $translations = Translations::Helper::Client->new();
       }
   );
+  $self->translations->endpoint_address($self->config->{translations}->{endpoint_address});
+  $self->translations->key($self->config->{translations}->{key});
+
   $self->helper(
       settings => sub {
-        state $settings = Order::Helper::Settings->new(pg => shift->pg)
+        state $settings = Parameters::Helper::Client->new(pg => shift->pg)
       }
   );
+  $self->settings->endpoint_address($self->config->{parameters}->{endpoint_address});
+  $self->settings->key($self->config->{parameters}->{key});
+
   $self->helper(
       orionreservation => sub {
         state $orionreservation = Order::Helper::Orion::Reservation->new(config => shift->config)

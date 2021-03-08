@@ -1,5 +1,5 @@
 package Order::Helper::Shoppingcart::LastUsedAddress;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures;
 
 use Mojo::UserAgent;
 use Mojo::JSON;
@@ -10,8 +10,7 @@ has 'pg';
 has 'db';
 has 'config';
 
-sub last_used_adresses {
-    my ($self, $userid, $company) = @_;
+sub last_used_adresses ($self, $userid, $company) {
 
     my $last_used = $self->load_last_used_addresses($userid, $company);
 
@@ -23,8 +22,7 @@ sub last_used_adresses {
     return $last_used;
 }
 
-sub load_last_used_addresses{
-    my ($self, $userid, $company) = @_;
+sub load_last_used_addresses ($self, $userid, $company) {
 
     my $invoice = $self->pg->db->select(
         'last_used_basket_addresses',
@@ -55,8 +53,7 @@ sub load_last_used_addresses{
     return $result;
 }
 
-sub get_default_addresses {
-    my ($self, $userid, $company) = @_;
+sub get_default_addresses ($self, $userid, $company) {
 
     my $ua = Mojo::UserAgent->new();
 
@@ -81,8 +78,7 @@ sub get_default_addresses {
 
 }
 
-sub upsert_last_used_adresses {
-    my ($self, $userid, $company, $address, $type) = @_;
+sub upsert_last_used_adresses ($self, $userid, $company, $address, $type) {
 
     my $db;
     if($self->db) {

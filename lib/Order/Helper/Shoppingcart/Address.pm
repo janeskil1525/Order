@@ -1,5 +1,5 @@
 package Order::Helper::Shoppingcart::Address;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures;
 
 use Try::Tiny;
 #use Order::Utils::Addresses::Company;
@@ -7,8 +7,7 @@ use Try::Tiny;
 has 'pg';
 has 'db';
 
-sub dropAddresses{
-	my ($self, $basket_pkey) = @_;
+sub dropAddresses ($self, $basket_pkey) {
 	
 	my $addresses = $self->pg->db->select(
 					['basket_addresses_basket',
@@ -32,8 +31,7 @@ sub dropAddresses{
 	return 1;
 }
 
-sub loadAddress{
-	my ($self, $basket_pkey, $type, $addressfields) = @_;
+sub loadAddress ($self, $basket_pkey, $type, $addressfields) {
 	
 	my $result = try{
 		$self->pg->db->select(
@@ -53,8 +51,7 @@ sub loadAddress{
 	return $result;
 }
 
-sub updateAddress{
-	my ($self, $basket_addresses_fkey, $address, $type) = @_;
+sub updateAddress ($self, $basket_addresses_fkey, $address, $type)  {
 
 	my $db;
 	if($self->db){
@@ -76,8 +73,7 @@ sub updateAddress{
 		
 }
 
-sub upsertAddress{
-	my ($self, $basket_pkey, $address, $type) = @_;
+sub upsertAddress ($self, $basket_pkey, $address, $type) {
 	
 	my $db;
 	if($self->db) {
@@ -110,8 +106,7 @@ sub upsertAddress{
 	return $result;
 }
 
-sub addressExists{
-	my ($self, $basket_pkey, $type) = @_;
+sub addressExists ($self, $basket_pkey, $type) {
 
 	my $db;
 	if($self->db){
@@ -130,6 +125,5 @@ sub addressExists{
 		
 	return $basket_addresses_fkey->{basket_addresses_fkey} ;
 }
-
 
 1;

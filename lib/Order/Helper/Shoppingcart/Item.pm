@@ -64,6 +64,7 @@ sub upsertItem{
 	}
 	$data->{rfq_note} = '' unless $data->{rfq_note};
 	$data->{freight} = 0 unless $data->{freight};
+	$data->{orion_reservation} = 0 unless $data->{orion_reservation};
 
 	$data->{itemno} = $db->query(
 		qq{SELECT COALESCE(MAX(itemno), 0) + 1  as itemno FROM basket_item WHERE basket_fkey = ? },
@@ -84,7 +85,7 @@ sub upsertItem{
 			rfq_note    => $data->{rfq_note},
 			extradata   => $data->{extradata},
 			settings    => to_json($data->{supplier}->{settings}),
-			external_reservation => $data->{external_reservation},
+			external_reservation => $data->{orion_reservation},
 		},
 			{
 				on_conflict => \[
@@ -134,7 +135,6 @@ sub upsertItem{
 		);
 	}
 
-	say "[Order::Helper::Shoppingcart::Item;::upsertItem] 3" ;
 	# if(exists $data->{stockitems_fkey} and $data->{stockitems_fkey} > 0){
 	# 	my $reservation = Daje::Model::Data::Reservation->new(
 	# 		stockitems_pkey       => $data->{stockitems_fkey},

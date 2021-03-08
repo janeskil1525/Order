@@ -10,7 +10,9 @@ use Data::Dumper;
 
 my $t = Test::Mojo->new('Order');
 
-$t->get_ok('/api/v1/basket/load/40c2d3b3-c0a1-eab8-ce49-fee02b065a5e')->status_is(200)->json_has('/basket');
+$t->get_ok(
+    '/api/v1/basket/load/e3be837e-c2ee-612a-81aa-3b81b05bf6af'
+)->status_is(200)->json_has('/basket');
 
 done_testing();
 

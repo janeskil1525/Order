@@ -77,7 +77,7 @@ sub load_rfq_api{
             $result->finish;
             ($rfq, $field_list) = $self->rfqs->set_setdefault_data($rfq);
 
-            my $detail = $self->translations->->details_headers(
+            my $detail = $self->translations->details_headers(
                 'rfqs', $field_list, $rfq, 'swe');
 
             $rfq->{header_data} = $detail;

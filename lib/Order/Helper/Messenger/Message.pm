@@ -1,5 +1,5 @@
 package Order::Helper::Messenger::Message;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures;
 
 use Mojo::UserAgent;
 use Daje::Utils::Sentinelsender;
@@ -17,14 +17,12 @@ has 'supplier' => '';
 
 has 'config';
 
-sub init {
-    my ($self, $minion) = @_;
+sub init ($self, $minion) {
 
     $minion->minion->add_task(send_message => \&_send_message);
 }
 
-sub _send_message{
-    my($job, $data) = @_;
+sub _send_message ($job, $data) {
 
     my $result = send_message($job->app->pg, $job->pp->config, $data);
 
@@ -32,21 +30,19 @@ sub _send_message{
 }
 
 
-sub send_message_test {
-    my ($self, $pg, $config, $data) = @_;
+sub send_message_test ($self, $pg, $config, $data) {
 
     my $result = send_message($pg, $config, $data);
 
     return $result;
 }
 
-sub send_message {
-    my ($pg, $config, $payload) = @_;
+sub send_message ($pg, $config, $payload) {
 
     my $ua = Mojo::UserAgent->new();
     my $key = $config->{webshop}->{key};
 
-    my $address = $config->{webshop}->{address} . $config->{webshop}->{messenger_endpoint};
+    my $address = $config->{messenger}->{address} . $config->{messenger}->{messenger_endpoint};
     my $tx = $ua->post(
         $address => {
             Accept => '*/*', 'X-Token-Check' => $key

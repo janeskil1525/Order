@@ -1,5 +1,5 @@
 package Order::Helper::Shoppingcart::Converter;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures, -async_await;
 
 use Data::Dumper;
 use Order::Helper::Messenger::Notice;
@@ -11,15 +11,12 @@ use Order::Model::PurchaseOrderHead;
 use Order::Helper::Messenger::Message;
 use Try::Tiny;
 
-sub init {
-    my ($self, $minion) = @_;
+sub init ($self, $minion) {
 
     $minion->add_task(create_orders => \&_create_orders);
 }
 
-sub _create_orders {
-    my($job, $data) = @_;
-
+sub _create_orders ($job, $data) {
 
     my $pg = $job->app->pg;
     my $config = $job->app->config;
@@ -31,11 +28,9 @@ sub _create_orders {
     }else{
         $job->finish({ status => 'failed'});
     }
-
 }
 
-sub create_orders {
-    my($pg, $data, $config, $minion) = @_;
+sub create_orders ($pg, $data, $config, $minion) {
 
     my $basket = Order::Helper::Shoppingcart::Cart->new(pg => $pg);
 
@@ -43,7 +38,6 @@ sub create_orders {
         $data->{basketid}
     );
     my $order = Order::Helper::Order::Import->new(pg => $pg)->importBasket($full_basket);
-    #my $summary = Order::Helper::Order->new(pg => $pg);
     my $result;
     if($order->{success}){
         #$basket->setStatusOrder($data->{basketid});
@@ -159,8 +153,7 @@ sub create_orders {
     return $result
 }
 
-sub send_message {
-    my ($minion, $data, $company, $companies_fkey, $system) = @_;
+sub send_message ($self, $minion, $data, $company, $companies_fkey, $system) {
 
     $system = 'LagaPro' unless $system;
     my $message->{payload} = $data;
@@ -171,8 +164,8 @@ sub send_message {
 
     $minion->enqueue('send_message' => [ $message ] => { priority => 0 });
 }
-sub create_orders_test {
-    my ($self, $pg, $data, $config, $minion) = @_;
+
+sub create_orders_test ($self, $pg, $data, $config, $minion) {
 
     my $result = create_orders($pg, $data, $config, $minion);
 

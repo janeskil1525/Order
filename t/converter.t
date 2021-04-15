@@ -21,9 +21,9 @@ sub convert {
     my $data->{basket_pkey} = 40;
     $data->{basketid} = 'f39222f9-c3ed-56ac-e6f5-cf73b3a6ddc2';
 
-    my $config->{webshop}->{address} = 'https://lagapro.laga.se';
-    $config->{webshop}->{key} = '8542f1f2-1dcd-4446-a97f-e5661d6d3412';
-    $config->{webshop}->{messenger_endpoint} = '/api/vi/messenger/add/notice/';
+    my $config->{messenger}->{address} = 'https://127.0.0.1:3013';
+    $config->{messenger}->{key} = '8542f1f2-1dcd-4446-a97f-e5661d6d3412';
+    $config->{messenger}->{messenger_endpoint} = '/api/vi/messenger/add/notice/';
     my $minion = Minion->new(Pg => $pg);
 
     my $result = Order::Helper::Shoppingcart::Converter->new(

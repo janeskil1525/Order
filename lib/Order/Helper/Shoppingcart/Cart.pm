@@ -217,7 +217,7 @@ sub saveBasket{
             if (exists $data->{invoiceaddress}){
                 my $basket_addresses_fkey = $address->addressExists($basket_pkey, 'Invoice');
                 if($basket_addresses_fkey){
-                    $address->updateAddress($basket_addresses_fkey, $data->{invoiceaddress});
+                    $address->updateAddress($basket_addresses_fkey, $data->{invoiceaddress}, 'Invoice');
                 }else{
                     $address->upsertAddress($basket_pkey, $data->{invoiceaddress},'Invoice') ;
                 }

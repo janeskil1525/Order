@@ -105,9 +105,11 @@ sub loadOpenOrderList{
 sub upsertHead{
     my ($self, $data, $ordertype, $item) = @_;
 
+    my $supplier = $item->{supplier_data};
+    my $customer = $data->{basket}->{customer};
     my $db;
-    $data->{details}->{userid} = 'jan@daje.work'
-        unless $data->{details}->{userid};
+    $item->{supplier_data}->{sales_mails} = 'jan@daje.work'
+        unless $item->{supplier_data}->{sales_mails};
     if($self->db) {
         $db = $self->db;
     } else {
@@ -120,36 +122,44 @@ sub upsertHead{
     my $updates;
     $updates->{order_type} = $ordertype;
     $updates->{order_no} = $data->{order_no};
-    $updates->{company} = $data->{details}->{company};
+    $updates->{company} = $customer->{company}->{company};
 
-    $updates->{userid} = $data->{details}->{userid};
+    $updates->{userid} = $item->{supplier_data}->{sales_mails};
+    $updates->{userid} = $item->{supplier_data}->{company_mails} unless $updates->{userid};
 
 
-    $updates->{name} = $data->{details}->{name};
-    $updates->{registrationnumber} = $item->{registrationnumber};
-    $updates->{phone} = $item->{phone};
-    $updates->{homepage} = $item->{homepage};
-    $updates->{address1} = $item->{address1};
-    $updates->{address2} = $item->{address2};
-    $updates->{address3} = $item->{address3};
-    $updates->{zipcode} = $item->{zipcode};
-    $updates->{city} = $item->{city};
-    $updates->{company_mails} = $item->{company_mails};
-    $updates->{sales_mails} = $item->{sales_mails};
-    $updates->{externalref} = $data->{details}->{basketid};
-    $updates->{supplier} = $item->{supplier};
+    $updates->{name} = $supplier->{company}->{name};
+    $supplier->{company}->{registrationnumber} = '123456-1234' unless $supplier->{company}->{registrationnumber};
+    $updates->{registrationnumber} = $supplier->{company}->{registrationnumber};
+    $updates->{registrationnumber} = $updates->{registrationnumber} unless $updates->{registrationnumber};
+    $updates->{phone} = $supplier->{company}->{phone};
+    $updates->{homepage} = $supplier->{company}->{homepage};
+    $updates->{homepage} = 'www.laga.se' unless $updates->{homepage};
+    $updates->{address1} = $supplier->{address}->{address1};
+    $updates->{address2} = $supplier->{address}->{address2};
+    $updates->{address3} = $supplier->{address}->{address3};
+    $updates->{zipcode} = $supplier->{address}->{zipcode};
+    $updates->{city} = $supplier->{address}->{city};
 
-    my $order_head_pkey = try{
-        $db->insert(
+    $updates->{company_mails} = $supplier->{company_mails};
+    $updates->{company_mails} = $supplier->{sales_mails} unless $updates->{company_mails};
+    $updates->{sales_mails} = $supplier->{sales_mails};
+    $updates->{externalref} = $data->{basket}->{basket}->{basket_pkey};
+    $updates->{supplier} = $supplier->{company}->{company};
+
+    my $order_head_pkey = try {
+        my $purchase_order_head_pkey = $db->insert(
             'purchase_order_head', $updates,
             {
                 on_conflict => \[' (order_no) Do update set moddatetime = ?', 'now()'],
                 returning => 'purchase_order_head_pkey'
             }
         )->hash->{purchase_order_head_pkey};
-    }catch{
+
+        return $purchase_order_head_pkey;
+    } catch {
         $self->capture_message("[Daje::Model::OrderHead::upsertHead] " . $_);
-        say "[Order::Model::PurchaseOrderHead::upsertHead] " . @_;
+        say "[Order::Model::PurchaseOrderHead::upsertHead] " . $_;
     };
 
     return $order_head_pkey;

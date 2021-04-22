@@ -37,7 +37,6 @@ sub upsertItem{
 			'purchase_order_items',
 				{
 					purchase_order_head_fkey => $purchase_order_head_pkey,
-					itemno => $data->{itemno},
 					stockitem => $data->{stockitem},
 					description => $data->{description},
 					quantity => $data->{quantity},
@@ -47,7 +46,7 @@ sub upsertItem{
 				},
 				{
 					on_conflict => \[
-						'(purchase_order_head_fkey, itemno) Do update set moddatetime = ?', 'now()'],
+						'(purchase_order_head_fkey, stockitem) Do update set moddatetime = ?', 'now()'],
 					returning => 'purchase_order_items_pkey'
 				}
 		)->hash;

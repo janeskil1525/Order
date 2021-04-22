@@ -8,12 +8,10 @@ use File::Share;
 
 use Order::Model::Menu;
 use Order::Model::Users;
-use Order::Helper::Shoppingcart;
 use Order::Helper::Shoppingcart::Converter;
 use Order::Helper::Rfqs;
-use Order::Helper::Settings;
-use Order::Helper::Translations;
-use Order::Helper::Shoppingcart::Cart;
+use Parameters::Helper::Client;
+use Translations::Helper::Client;
 use Order::Helper::Orion::Reservation;
 
 use Parameters::Helper::Client;
@@ -46,11 +44,6 @@ sub startup {
   $self->helper(menu => sub { state $menu = Order::Model::Menu->new(pg => shift->pg)});
   $self->helper(users => sub { state $users = Order::Model::Users->new(pg => shift->pg)});
   $self->helper(order => sub { state $order = Order::Helper::Order->new(pg => shift->pg)});
-  $self->helper(shoppingcart => sub { state $shoppingcart = Order::Helper::Shoppingcart->new(pg => shift->pg)});
-  $self->shoppingcart->config($self->config);
-
-  $self->helper(cart => sub { state $cart = Order::Helper::Shoppingcart::Cart->new(pg => shift->pg)});
-  $self->cart->config($self->config);
 
   $self->helper(
       converter => sub {
@@ -100,7 +93,7 @@ sub startup {
 
   $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-  )->migrate(27);
+  )->migrate(28);
 
   my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp
@@ -129,11 +122,29 @@ sub startup {
     return undef;
   } );
 
+  $self->plugin(
+      OpenAPI => {
+          spec     => $self->dist_dir->child('openapi') . '/schema.json',
+          security => {
+              apiKey => sub {
+                my ($c, $definition, $scopes, $cb) = @_;
+                return $c->$cb() if $c->tx->req->content->headers->header('X-Token-Check') eq $c->config->{key};
+                return $c->$cb() if $c->authenticate->authenticate(
+                    $c->req->headers->header('X-User-Check'), $c->req->headers->header('X-Token-Check')
+                );
+                return $c->$cb('Api Key not valid');
+              }
+          }
+      }
+  );
 
   my $auth_api = $self->routes->under( '/api', sub {
     my ( $c ) = @_;
-
-    return 1;
+say "Api_route";
+    return 1 if $c->req->headers->header('X-Token-Check') eq $c->config->{key} ;
+    return 1 if $c->authenticate->authenticate(
+        $c->req->headers->header('X-User-Check'), $c->req->headers->header('X-Token-Check')
+    );
     #return 1 if $c->user->authenticate($c->req->headers->header('X-Token-Check'));
     # Not authenticated
     $c->render(json => '{"error":"unknown error"}');
@@ -192,6 +203,7 @@ sub startup {
     }
   );
 
+
   # Router
   my $r = $self->routes;
 
@@ -207,16 +219,6 @@ sub startup {
   $auth_api->get('/v1/orders/item/load/')->to('orders#load_item_api');
   $auth_api->get('/v1/orders/load/purchase/:orders_pkey')->to('orders#load_purchase_order_api');
   $auth_api->get('/v1/orders/load/sales/:orders_pkey')->to('orders#load_sales_order_api');
-
-  $auth_api->post('/v1/basket/upsertitem/')->to("basket#upsertitem");
-  $auth_api->get('/v1/vehicle/getforregplate:regplate')->to("basket#getforregplate");
-  $auth_api->get('/v1/basket/load/:basketid')->to('basket#load_basket');
-
-  $auth_api->post('/v1/basket/open/')->to('basket#open_basket');
-
-  $auth_api->get('/v1/basket/items/:itemtype')->to('basket#list_basket_items_itemtype_api');
-  $auth_api->get('/v1/basket/item/load/:basket_item_pkey')->to('basket#basket_items_load_api');
-  $auth_api->post('/v1/basket/checkout/')->to('basket#checkout');
 
   $auth_api->get('/v1/rfqs/list/supplier/:supplier/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_supplier_api');
   $auth_api->get('/v1/rfqs/list/customer/:customer/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_customer_api');

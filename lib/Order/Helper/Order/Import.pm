@@ -21,7 +21,7 @@ sub importBasket{
 	my @suppliers;
 	my $items;
     #$basket->{data} = $basket->{data}->to_array;
-	@{$items} =  sort { $b->{company} cmp $a->{company} } @{$basket->{data}};
+	@{$items} =  sort { $b->{supplier} cmp $a->{supplier} } @{$basket->{basket}->{items}};
 	my $purchaseorder_head_pkey;
 	my $salesorder_head_pkey;
 
@@ -65,15 +65,5 @@ sub importBasket{
 
 	return $result;
 }
-
-
-sub upsertHead{
-	my ($self, $data, $ordertype) = @_;
-	
-	return Daje::Model::OrderHead->new(
-		pg => $self->pg
-	)->upsertHead($data, $ordertype);
-}
-
 
 1;

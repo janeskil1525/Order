@@ -4,7 +4,6 @@ use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures, -async_await;
 use Data::Dumper;
 use Order::Helper::Messenger::Notice;
 use Order::Helper::Order::Import;
-use Order::Helper::Shoppingcart::Cart;
 use Order::Helper::Order;
 use Order::Model::SalesOrderHead;
 use Order::Model::PurchaseOrderHead;
@@ -30,14 +29,9 @@ sub _create_orders ($job, $data) {
     }
 }
 
-sub create_orders ($pg, $data, $config, $minion) {
+sub create_orders ($pg, $basket, $config, $minion) {
 
-    my $basket = Order::Helper::Shoppingcart::Cart->new(pg => $pg);
-
-    my $full_basket = $basket->loadBasketFull(
-        $data->{basketid}
-    );
-    my $order = Order::Helper::Order::Import->new(pg => $pg)->importBasket($full_basket);
+    my $order = Order::Helper::Order::Import->new(pg => $pg)->importBasket($basket);
     my $result;
     if($order->{success}){
         #$basket->setStatusOrder($data->{basketid});
@@ -71,7 +65,8 @@ sub create_orders ($pg, $data, $config, $minion) {
                     $minion,
                     $message_hash,
                     $salesorder_notice->company(),
-                    $salesorder_notice->companies_fkey()
+                    $salesorder_notice->companies_fkey(),
+                    $basket->{system}
                 ) ;
                 my $salesorderhead = $summary->load_order_head(@{$order->{salesorder_head_pkey}}[$i]);
 
@@ -80,7 +75,8 @@ sub create_orders ($pg, $data, $config, $minion) {
                     $minion,
                     $salesorderhead,
                     $salesorder_notice->company(),
-                    $salesorder_notice->companies_fkey()
+                    $salesorder_notice->companies_fkey(),
+                    $basket->{system}
                 ) ;
             }
         } catch {
@@ -124,7 +120,8 @@ sub create_orders ($pg, $data, $config, $minion) {
                     $minion,
                     $message_hash,
                     $purchaseorder_notice->company(),
-                    $purchaseorder_notice->companies_fkey()
+                    $purchaseorder_notice->companies_fkey(),
+                    $basket->{system}
                 );
 
                 my $purchasorderhead = $summary->load_order_head(@{$order->{purchaseorder_head_pkey}}[$i]);
@@ -134,7 +131,8 @@ sub create_orders ($pg, $data, $config, $minion) {
                     $minion,
                     $purchasorderhead,
                     $purchaseorder_notice->company(),
-                    $purchaseorder_notice->companies_fkey()
+                    $purchaseorder_notice->companies_fkey(),
+                    $basket->{system}
                 ) ;
             }
         } catch {
@@ -153,7 +151,7 @@ sub create_orders ($pg, $data, $config, $minion) {
     return $result
 }
 
-sub send_message ($self, $minion, $data, $company, $companies_fkey, $system) {
+sub send_message ($minion, $data, $company, $companies_fkey, $system) {
 
     $system = 'LagaPro' unless $system;
     my $message->{payload} = $data;

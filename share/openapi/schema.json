@@ -1,9 +1,65 @@
 {
-  "swagger" : "2.0",
-  "info" : { "version": "0.8", "title" : "LagaPro Order Service" },
-  "schemes" : [ "http" ],
-  "basePath" : "/api",
+  "openapi": "3.0.2",
+  "info": {
+    "version": "1.0",
+    "title": "LagaPro Order Service"
+  },
   "paths" :{
+    "/v1/basket/checkout/": {
+      "post": {
+        "operationId": "checkoutInBasket",
+        "x-mojo-name": "checkout",
+        "x-mojo-to": "basket#checkout",
+        "summary": "get checkout data",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userid",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "company",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout basket response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "/api"
+    }
+  ]
 
-  }
 }

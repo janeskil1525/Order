@@ -1077,3 +1077,30 @@ values  (1, 1, 'rfqs_pkey', 0, '{"visible":"false"}'),
 
 
 -- 27 down
+
+-- 28 up
+
+drop table if exists basket_addresses_basket;
+drop table if exists suppliers;
+drop table if exists customers;
+drop table if exists basket_addresses;
+drop table if exists basket_vehicle;
+drop table if exists basket_item;
+drop table if exists basket;
+
+drop index idx_purchase_order_head_fkey_itemno;
+alter table purchase_order_items
+    drop column itemno;
+
+create unique index idx_purchase_order_head_fkey_stockitem
+    ON purchase_order_items
+        (purchase_order_head_fkey ASC NULLS LAST, stockitem ASC NULLS LAST);
+
+drop index idx_sales_order_head_fkey_itemno;
+alter table sales_order_items
+    drop column itemno;
+
+CREATE UNIQUE INDEX idx_sales_order_head_fkey_stockitem
+    ON sales_order_items USING btree
+        (sales_order_head_fkey ASC NULLS LAST, stockitem ASC NULLS LAST);
+-- 28 down

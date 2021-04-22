@@ -3,7 +3,6 @@ use Mojo::Base 'Mojolicious::Controller';
 
 use Scalar::Util qw(looks_like_number);
 use Mojo::JSON qw{decode_json};
-use Order::Helper::Translations;
 use Data::Dumper;
 
 sub list_all_rfqs_from_status_supplier_api{

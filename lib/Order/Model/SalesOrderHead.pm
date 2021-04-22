@@ -2,7 +2,7 @@ package Order::Model::SalesOrderHead;
 use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 
-use Mojo::JSON qw {decode_json from_json};
+use Mojo::JSON qw {decode_json from_json encode_json};
 use Order::Helper::Selectnames;
 use Order::Model::OrderAddresses;
 use Order::Model::OrderCompanies;
@@ -143,9 +143,10 @@ sub loadOpenOrderList{
 sub upsertHead{
     my ($self, $data, $ordertype, $item) = @_;
 
+    my $customer = $data->{basket}->{customer};
     my $db;
-    $item->{sales_mails} = 'jan@daje.work'
-        unless $item->{sales_mails};
+    $item->{supplier_data}->{sales_mails} = 'jan@daje.work'
+        unless $item->{supplier_data}->{sales_mails};
     if($self->db) {
         $db = $self->db;
     } else {
@@ -158,31 +159,35 @@ sub upsertHead{
     $updates->{order_type} = $ordertype;
     $updates->{order_no} = $data->{order_no};
     $updates->{company} = $item->{supplier};
-    $updates->{userid} = $item->{sales_mails};
-    $updates->{userid} = $item->{company_mails} unless $updates->{userid};
+    $updates->{userid} = $item->{supplier_data}->{sales_mails};
+    $updates->{userid} = $item->{supplier_data}->{company_mails} unless $updates->{userid};
 
-    $updates->{name} = $item->{name};
-    $updates->{registrationnumber} = $data->{details}->{registrationnumber};
-    $updates->{homepage} = $data->{details}->{homepage};
-    $updates->{phone} = $data->{details}->{phone};
-    $updates->{address1} = $data->{details}->{address1};
-    $updates->{address2} = $data->{details}->{address2};
-    $updates->{address3} = $data->{details}->{address3};
-    $updates->{zipcode} = $data->{details}->{zipcode};
-    $updates->{city} = $data->{details}->{city};
-    $updates->{company_mails} = $item->{company_mails};
+    $updates->{name} = $customer->{company}->{name};
+    $updates->{registrationnumber} = $customer->{company}->{registrationnumber};
+    $updates->{homepage} = $customer->{company}->{homepage};
+    $updates->{phone} = $customer->{company}->{phone};
+    $updates->{address1} = $customer->{invoiceaddress}->{address1};
+    $updates->{address2} = $customer->{invoiceaddress}->{address2};
+    $updates->{address3} = $customer->{invoiceaddress}->{address3};
+    $updates->{zipcode} = $customer->{invoiceaddress}->{zipcode};
+    $updates->{city} = $customer->{invoiceaddress}->{city};
+    $updates->{company_mails} = $item->{company_mails} ;
+    $updates->{company_mails} = $updates->{userid} unless $updates->{company_mails};
+
     $updates->{sales_mails} = $item->{sales_mails};
-    $updates->{externalref} = $data->{details}->{basketid};
-    $updates->{debt} = $data->{details}->{debt};
-    $updates->{customer} = $data->{details}->{company};
+    $updates->{sales_mails} = $updates->{userid} unless $updates->{sales_mails};
+
+    $updates->{externalref} = $data->{basket}->{basket}->{basket_pkey};
+    $updates->{debt} = 0;
+    $updates->{customer} = $customer->{company}->{company};
     $updates->{export_to} = '';
-    $updates->{externalids} = $data->{details}->{externalids};
-    my $exportdest = from_json $data->{details}->{externalids};
-    if(exists $exportdest->{orionid} and $exportdest->{orionid}){
+    $updates->{externalids} = $data->{basket}->{basket}->{basket_pkey};
+    my $exportdest = $item->{supplier_data};
+    if(exists $exportdest->{settings}->{orion} and $exportdest->{settings}->{orion}){
         $updates->{export_to} = 'orion';
     }
     $updates->{export_status} = 'new';
-    $updates->{settings} = $item->{settings};
+    $updates->{settings} = encode_json($item->{supplier_data}->{settings});
 
 
     my $order_head_pkey = try{

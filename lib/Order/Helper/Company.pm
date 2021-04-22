@@ -3,8 +3,6 @@ use Mojo::Base 'Daje::Utils::Sentinelsender';
 
 use Daje::Model::Addresses;
 
-our $VERSION = '0.3';
-
 use Try::Tiny;
 
 has 'pg';

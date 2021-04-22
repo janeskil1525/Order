@@ -4,7 +4,6 @@ use Mojo::Base 'Mojolicious::Controller';
 use Mojo::JSON qw{encode_json decode_json};
 
 use Order::Model::Quotes;
-use Order::Helper::Translations;
 use Data::Dumper;
 
 sub load_quote_api{
@@ -24,10 +23,11 @@ sub load_quote_api{
             $result->finish;
             ($quote, $field_list) = $self->quote->set_setdefault_data($quote);
 
-            my $detail = Order::Helper::Translations->new(
+            my $detail = $self->translations->new(
                 pg => $self->pg
             )->details_headers(
-                'quotes', $field_list, $quote, 'swe');
+                'quotes', $field_list, $quote, 'swe'
+            );
 
             $quote->{header_data} = $detail;
 

@@ -10,6 +10,7 @@ lib/Order/Controller/Quotes.pm
 lib/Order/Controller/Rfqs.pm
 lib/Order/Controller/Users.pm
 lib/Order/Controller/Wanted.pm
+lib/Order/Helper/Client.pm
 lib/Order/Helper/Company.pm
 lib/Order/Helper/Mail/Base/Common.pm
 lib/Order/Helper/Mail/User/PoCreated.pm
@@ -40,18 +41,6 @@ lib/Order/Helper/Postgres/Columns.pm
 lib/Order/Helper/Quotes.pm
 lib/Order/Helper/Rfqs.pm
 lib/Order/Helper/Selectnames.pm
-lib/Order/Helper/Settings.pm
-lib/Order/Helper/Settings/GridSettings.pm
-lib/Order/Helper/Settings/NewCompanySettings.pm
-lib/Order/Helper/Shoppingcart.pm
-lib/Order/Helper/Shoppingcart/Address.pm
-lib/Order/Helper/Shoppingcart/Cart.pm
-lib/Order/Helper/Shoppingcart/Check/CartData.pm
-lib/Order/Helper/Shoppingcart/Converter.pm
-lib/Order/Helper/Shoppingcart/Data.pm
-lib/Order/Helper/Shoppingcart/Item.pm
-lib/Order/Helper/Shoppingcart/LastUsedAddress.pm
-lib/Order/Helper/Translations.pm
 lib/Order/Helper/Wanted/Interface.pm
 lib/Order/Model/Addresses.pm
 lib/Order/Model/BasketAdresses.pm
@@ -70,7 +59,6 @@ lib/Order/Model/Wanted.pm
 lib/Order/Utils/Addresses/Company.pm
 lib/Order/Utils/Postgres/Columns.pm
 lib/Order/Utils/User.pm
-Log/LogFile.log
 Makefile.PL
 MANIFEST			This list of files
 README.md

@@ -16,6 +16,7 @@ use Order::Helper::Orion::Reservation;
 
 use Parameters::Helper::Client;
 use Translations::Helper::Client;
+use Messenger::Helper::Client;
 
 $ENV{ORDER_HOME} = '/home/jan/Project/Order/'
     unless $ENV{ORDER_HOME};
@@ -57,6 +58,14 @@ sub startup {
   );
   $self->translations->endpoint_address($self->config->{translations}->{endpoint_address});
   $self->translations->key($self->config->{translations}->{key});
+
+    $self->helper(
+        messenger => sub {
+            state $messenger= Messenger::Helper::Client->new();
+        }
+    );
+    $self->messenger->endpoint_address($self->config->{messenger}->{endpoint_address});
+    $self->messenger->key($self->config->{messenger}->{key});
 
   $self->helper(
       settings => sub {

@@ -12,7 +12,7 @@ has 'error' => 'false';
 has 'company' => '';
 has 'userid' => '';
 has 'type' => 'notice';
-has 'companies_fkey' => 0;
+
 
 sub get_payload{
     my $self= shift;
@@ -26,7 +26,7 @@ sub get_payload{
     $payload->{type} = $self->type();
     $payload->{message} = $self->message();
     $payload->{error} = $self->error();
-    $payload->{companies_fkey} = $self->companies_fkey();
+
 
 
     return $payload;

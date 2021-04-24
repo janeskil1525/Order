@@ -1,6 +1,8 @@
 package Order::Helper::Shoppingcart::Converter;
 use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures, -async_await;
 
+use Mojo::JSON qw {to_json};
+
 use Data::Dumper;
 use Order::Helper::Messenger::Notice;
 use Order::Helper::Order::Import;
@@ -8,6 +10,7 @@ use Order::Helper::Order;
 use Order::Model::SalesOrderHead;
 use Order::Model::PurchaseOrderHead;
 use Order::Helper::Messenger::Message;
+use Messenger::Helper::Client;
 use Try::Tiny;
 
 sub init ($self, $minion) {
@@ -19,8 +22,8 @@ sub _create_orders ($job, $data) {
 
     my $pg = $job->app->pg;
     my $config = $job->app->config;
-    my $minion = $job->app->minion;
-    my $result = create_orders($pg, $data, $config, $minion);
+    my $messenger = $job->app->messenger;
+    my $result = create_orders($pg, $data, $config, $messenger);
 
     if($result){
         $job->finish({ status => 'success'});
@@ -29,11 +32,11 @@ sub _create_orders ($job, $data) {
     }
 }
 
-sub create_orders ($pg, $basket, $config, $minion) {
+sub create_orders ($pg, $basket, $config, $messenger) {
 
     my $order = Order::Helper::Order::Import->new(pg => $pg)->importBasket($basket);
     my $result;
-    if($order->{success}){
+    if($order->{success}) {
         #$basket->setStatusOrder($data->{basketid});
         my $message = Order::Helper::Messenger::Message->new(config => $config);
         my $length = scalar @{$order->{salesorder_head_pkey}};
@@ -48,11 +51,7 @@ sub create_orders ($pg, $basket, $config, $minion) {
                         @{$order->{salesorder_head_pkey}}[$i]
                     )
                 );
-                $salesorder_notice->companies_fkey(
-                    $summary->companies_fkey(
-                        @{$order->{salesorder_head_pkey}}[$i]
-                    )
-                );
+
                 $salesorder_notice->message(
                     $summary->get_summary(
                         @{$order->{salesorder_head_pkey}}[$i]
@@ -61,23 +60,20 @@ sub create_orders ($pg, $basket, $config, $minion) {
 
                 my $message_hash = $salesorder_notice->get_payload();
 
-                send_message (
-                    $minion,
-                    $message_hash,
+                $messenger->add_message(
                     $salesorder_notice->company(),
-                    $salesorder_notice->companies_fkey(),
-                    $basket->{system}
-                ) ;
+                    $basket->{system},
+                    $message_hash
+                );
+
                 my $salesorderhead = $summary->load_order_head(@{$order->{salesorder_head_pkey}}[$i]);
 
                 $salesorderhead->{type} = 'salesorder_created';
-                send_message (
-                    $minion,
-                    $salesorderhead,
+                $messenger->add_message(
                     $salesorder_notice->company(),
-                    $salesorder_notice->companies_fkey(),
-                    $basket->{system}
-                ) ;
+                    $basket->{system},
+                    $salesorderhead
+                );
             }
         } catch {
             Daje::Utils::Sentinelsender->new()->capture_message(
@@ -103,11 +99,6 @@ sub create_orders ($pg, $basket, $config, $minion) {
                         @{$order->{purchaseorder_head_pkey}}[$i]
                     )
                 );
-                $purchaseorder_notice->companies_fkey(
-                    $summary->companies_fkey(
-                        @{$order->{purchaseorder_head_pkey}}[$i]
-                    )
-                );
 
                 $purchaseorder_notice->message(
                     $summary->get_summary(
@@ -116,24 +107,20 @@ sub create_orders ($pg, $basket, $config, $minion) {
                 );
 
                 my $message_hash = $purchaseorder_notice->get_payload();
-                send_message (
-                    $minion,
-                    $message_hash,
+                $messenger->add_message(
                     $purchaseorder_notice->company(),
-                    $purchaseorder_notice->companies_fkey(),
-                    $basket->{system}
+                    $basket->{system},
+                    $message_hash
                 );
 
                 my $purchasorderhead = $summary->load_order_head(@{$order->{purchaseorder_head_pkey}}[$i]);
                 $purchasorderhead->{type} = 'purchaseorder_created';
 
-                send_message (
-                    $minion,
-                    $purchasorderhead,
+                $messenger->add_message(
                     $purchaseorder_notice->company(),
-                    $purchaseorder_notice->companies_fkey(),
-                    $basket->{system}
-                ) ;
+                    $basket->{system},
+                    $purchasorderhead
+                );
             }
         } catch {
 
@@ -149,18 +136,6 @@ sub create_orders ($pg, $basket, $config, $minion) {
     }
 
     return $result
-}
-
-sub send_message ($minion, $data, $company, $companies_fkey, $system) {
-
-    $system = 'LagaPro' unless $system;
-    my $message->{payload} = $data;
-    $message->{system} = $system;
-    $message->{company} = $company;
-    $message->{companies_fkey} = $companies_fkey;
-
-
-    $minion->enqueue('send_message' => [ $message ] => { priority => 0 });
 }
 
 sub create_orders_test ($self, $pg, $data, $config, $minion) {

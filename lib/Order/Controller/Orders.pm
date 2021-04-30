@@ -15,8 +15,9 @@ sub list_purchaseorders{
 
 sub list_salesorders{
 	my $self = shift;
+	my $company = $self->param("company");
 	my $token = $self->req->headers->header('X-Token-Check');
-	my $salesorders = $self->order->getOpenSoList($token);
+	my $salesorders = $self->order->getOpenSoList($company);
 	$self->render(json => $salesorders);
 }
 

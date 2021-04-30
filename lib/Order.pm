@@ -13,6 +13,7 @@ use Order::Helper::Rfqs;
 use Parameters::Helper::Client;
 use Translations::Helper::Client;
 use Order::Helper::Orion::Reservation;
+use Order::Helper::Order::Salesorder;
 
 use Parameters::Helper::Client;
 use Translations::Helper::Client;
@@ -45,6 +46,12 @@ sub startup {
   $self->helper(menu => sub { state $menu = Order::Model::Menu->new(pg => shift->pg)});
   $self->helper(users => sub { state $users = Order::Model::Users->new(pg => shift->pg)});
   $self->helper(order => sub { state $order = Order::Helper::Order->new(pg => shift->pg)});
+    $self->helper(
+        salesorder => sub {
+            state $salesorder = Order::Helper::Order::Salesorder->new(pg => shift->pg)
+        }
+    );
+
 
   $self->helper(
       converter => sub {
@@ -83,7 +90,7 @@ sub startup {
 
   $self->helper(
       rfqs => sub {
-        state $converter = Order::Helper::Rfqs->new(pg => shift->pg)
+        state $rfqs= Order::Helper::Rfqs->new(pg => shift->pg)
       }
   );
   $self->helper(
@@ -224,7 +231,7 @@ say "Api_route";
   $auth_route->get('/users/list/')->to('users#list');
 
   $auth_api->get('/v1/orders/purchase/')->to('orders#list_purchaseorders');
-  $auth_api->get('/v1/orders/sales/')->to('orders#list_salesorders');
+  $auth_api->get('/v1/orders/sales/:company')->to('orders#list_salesorders');
   $auth_api->get('/v1/orders/item/load/')->to('orders#load_item_api');
   $auth_api->get('/v1/orders/load/purchase/:orders_pkey')->to('orders#load_purchase_order_api');
   $auth_api->get('/v1/orders/load/sales/:orders_pkey')->to('orders#load_sales_order_api');

@@ -21,6 +21,30 @@ sub load_order_addresses_p{
     );
 }
 
+sub load_order_addresses{
+    my ($self, $order_head_pkey, $type) = @_;
+
+    my $result = try {
+        $self->pg->db->select(
+            [ 'order_addresses_order', [ 'order_addresses',
+                'order_addresses.order_addresses_pkey' => 'order_addresses_order.order_addresses_fkey' ]
+            ],
+            '*',
+            {
+                order_head_fkey => $order_head_pkey,
+                address_type    => $type
+            }
+        );
+    } catch {
+        say $_;
+    };
+
+    my $hash;
+    $hash = $result->hash if $result and $result->rows > 0;
+
+    return $hash;
+}
+
 sub setSupplierAddresses{
     my ($self, $order_head_pkey, $suppliers_pkey) = @_;
 

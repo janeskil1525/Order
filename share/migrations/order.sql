@@ -136,7 +136,7 @@ CREATE UNIQUE INDEX idx_order_vehicle_order_items_fkey_regplate_unique
     ON public.order_vehicle USING btree
         (regplate, order_items_fkey);
 
-CREATE TABLE public.order_addresses
+CREATE TABLE order_addresses
 (
     order_addresses_pkey serial,
     editnum              bigint                                             NOT NULL DEFAULT 1,
@@ -1104,3 +1104,55 @@ CREATE UNIQUE INDEX idx_sales_order_head_fkey_stockitem
     ON sales_order_items USING btree
         (sales_order_head_fkey ASC NULLS LAST, stockitem ASC NULLS LAST);
 -- 28 down
+
+-- 29 up
+
+CREATE TABLE sales_order_addresses
+(
+    sales_order_addresses_pkey serial,
+    editnum              bigint                                             NOT NULL DEFAULT 1,
+    insby                character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    insdatetime          timestamp without time zone                        NOT NULL DEFAULT now(),
+    modby                character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    moddatetime          timestamp without time zone                        NOT NULL DEFAULT now(),
+    name                 character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    address1             character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    address2             character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    address3             character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    city                 character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    zipcode              character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    country              character varying(30) COLLATE pg_catalog."default"          DEFAULT ''::character varying,
+    CONSTRAINT sales_order_addresses_pkey PRIMARY KEY (sales_order_addresses_pkey)
+);
+
+
+CREATE TABLE salesorder_addresses_salesorder
+(
+    salesorder_addresses_salesorder_pkey serial,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    insdatetime timestamp without time zone NOT NULL DEFAULT now(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    moddatetime timestamp without time zone NOT NULL DEFAULT now(),
+    sales_order_head_fkey bigint NOT NULL,
+    sales_order_addresses_fkey bigint NOT NULL,
+    address_type character varying COLLATE pg_catalog."default" NOT NULL DEFAULT 'Invoice'::character varying,
+    CONSTRAINT salesorder_addresses_salesorder_pkey PRIMARY KEY (salesorder_addresses_salesorder_pkey),
+    CONSTRAINT salesorder_addresses_order_head_fkey_fkey FOREIGN KEY (sales_order_head_fkey)
+        REFERENCES sales_order_head (sales_order_head_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE,
+    CONSTRAINT order_addresses_address_fkey_fkey FOREIGN KEY (sales_order_addresses_fkey)
+        REFERENCES sales_order_addresses (sales_order_addresses_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE
+);
+
+
+CREATE UNIQUE INDEX idx_salesorder_addresses_salesorder_address_type_unique
+    ON salesorder_addresses_salesorder USING btree
+        (sales_order_head_fkey, sales_order_addresses_fkey, address_type COLLATE pg_catalog."default");
+
+-- 29 down

@@ -100,8 +100,7 @@ sub companies_fkey{
     return $hash;
 }
 
-sub load_order_head{
-    my ($self, $sales_order_head_pkey) = @_;
+sub load_order_head ($self, $sales_order_head_pkey) {
 
     my $result = $self->pg->db->select(
         'sales_order_head', '*',

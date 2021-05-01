@@ -1,5 +1,5 @@
 package Order::Helper::Order;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures;
 
 use Order::Model::PurchaseOrderHead;
 use Order::Model::SalesOrderHead;
@@ -8,6 +8,8 @@ use Order::Model::SalesOrderItem;
 use Order::Model::OrderCompanies;
 use Order::Model::OrderAddresses;
 use Order::Helper::Order::Summary;
+use Order::Helper::Postgres::Columns;
+use Order::Model::SalesorderAdresses;
 
 use Try::Tiny;
 
@@ -92,12 +94,18 @@ sub load_order_head{
     return $order_head;
 }
 
-sub load_salesorder_head{
-    my ($self, $order_head_pkey, $type) = @_;
+sub load_salesorder_head ($self, $order_head_pkey) {
 
     return Order::Model::SalesOrderHead->new(
         pg => $self->pg
     )->load_order_head($order_head_pkey)
+}
+
+sub load_salesorder_items ($self, $order_head_pkey) {
+
+    return Order::Model::SalesOrderItem->new(
+        pg => $self->pg
+    )->load_salesorder_items($order_head_pkey)
 }
 
 sub load_purchaseorder_head{
@@ -108,12 +116,27 @@ sub load_purchaseorder_head{
     )->load_order_head($order_head_pkey)
 }
 
-sub load_order_addresses_p{
-    my ($self, $order_head_pkey) = @_;
+sub load_order_addresses ($self, $order_head_pkey, $type) {
 
     return Order::Model::OrderAddresses->new(
         pg => $self->pg
-    )->load_order_addresses_p($order_head_pkey);
+    )->load_order_addresses($order_head_pkey, $type);
 }
 
+sub load_salesorder_addresses ($self, $order_head_pkey, $type) {
+
+    return Order::Model::SalesorderAdresses->new(
+        pg => $self->pg
+    )->load_salesorder_addresses($order_head_pkey, $type);
+}
+
+sub get_table_column_names ($self, $table) {
+
+    my $fields;
+    $fields = Order::Helper::Postgres::Columns->new(
+        pg => $self->pg
+    )->get_table_column_names($table);
+
+    return $fields;
+}
 1;

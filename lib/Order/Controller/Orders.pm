@@ -69,10 +69,11 @@ sub load_sales_order_api{
 
 	my $token = $self->req->headers->header('X-Token-Check');
 	my $validator = $self->validation;
-	if($validator->required('orders_pkey')) {
-		my $orders_pkey = $self->param('orders_pkey');
-		say "load_sales_order_api";
+	if($validator->required('sales_order_head_pkey')) {
+		my $orders_pkey = $self->param('sales_order_head_pkey');
+
 		my $fields_list = $self->settings->get_settings_list('Order_items_grid', 0,0);
+
 		my $order->{order_items}->{headers} = $self->translations->grid_header(
 			'Order_items_grid', $fields_list, 'swe'
 		);
@@ -81,24 +82,26 @@ sub load_sales_order_api{
 
 			my $table = $self->order->get_table_default_data();
 			$order->{order_items}->{data} = [];
-
+			say "load_sales_order_api 1";
 			$order->{header_data} = $self->translations->details_headers(
 				'order_head', $table->{orderhead}->{fields},
 				$table->{orderhead}->{data}, 'swe'
 			);
-
+			say "load_sales_order_api 2";
 			my $order_companies = $self->translations->details_headers(
 				'companies', $table->{ordercompanies}->{fields},
 				$table->{ordercompanies}->{data}, 'swe'
 			);
+			say "load_sales_order_api 3";
 			foreach my $key (keys(%{$order_companies})) {
 				$order->{header_data}->{$key} = $order_companies->{$key};
 			}
-
+			say "load_sales_order_api 4";
 			my $order_addresses = $self->translations->details_headers(
 				'order_addresses', $table->{orderaddresses}->{fields},
 				$table->{orderaddresses}->{data}, 'swe'
 			);
+			say "load_sales_order_api 5";
 			foreach my $key (keys(%{$order_addresses})) {
 				$order->{header_data}->{invoiceaddress}->{$key} = $order_addresses->{$key};
 			}
@@ -112,58 +115,66 @@ sub load_sales_order_api{
 			$self->render(json => $order);
 		}else{
 
-			$self->render_later;
+			#$self->render_later;
 
-			my ($orderhead_fields, $orderaddresses_fields, $ordercompanies_fields) =
-				$self->order->get_table_column_names();
-			my $orderhead = $self->order->load_order_head_p($orders_pkey);
-			my $orderitems = $self->order->load_order_items_p($orders_pkey, $fields_list);
-			my $ordercompanies = $self->order->load_order_companies_p($orders_pkey);
-			my $invoiceaddress = $self->order->load_order_addresses_p($orders_pkey,'Invoice');
-			my $deliveryaddress = $self->order->load_order_addresses_p($orders_pkey,'Invoice');
-			Mojo::Promise->all(($orderhead, $orderitems, $ordercompanies, $invoiceaddress, $deliveryaddress))->then(sub {
-				my ($orderhead, $orderitems, $ordercompanies, $invoiceaddress, $deliveryaddress) = @_;
+			my $orderhead_fields =
+				$self->order->get_table_column_names('sales_order_head');
+			my $orderaddresses_fields =
+				$self->order->get_table_column_names('sales_order_addresses');
 
+			say "load_sales_order_api 2";
+			my $salesorder = $self->order->load_salesorder_head($orders_pkey);
+			say "load_sales_order_api 3";
+			my $orderitems = $self->order->load_salesorder_items($orders_pkey);
+			say "load_sales_order_api 4";
+			#my $ordercompanies = $self->order->load_order_companies_p($orders_pkey);
+			my $invoiceaddress = $self->order->load_salesorder_addresses($orders_pkey,'Invoice');
+			say "load_sales_order_api 5";
+			my $deliveryaddress = $self->order->load_salesorder_addresses($orders_pkey,'Invoice');
+			say "load_sales_order_api 6";
 
-				$order->{order_items}->{data} = $orderitems->[0]->hashes;
+			$order->{order_items}->{data} = $orderitems;
+			say "load_sales_order_api 7";
+			$order->{header_data} = $self->translations->details_headers(
+				'order_head', $orderhead_fields, $salesorder, 'swe'
+			);
+			say "load_sales_order_api 8";
+			# my $order_companies = $self->translations->details_headers(
+			# 	'companies', $ordercompanies_fields, $ordercompanies->[0]->hash(), 'swe'
+			# );
+			# 	foreach my $key (keys(%{$order_companies})) {
+			# 		$order->{header_data}->{$key} = $order_companies->{$key};
+			# 	}
 
-				$order->{header_data} = $self->translations->details_headers(
-					'order_head', $orderhead_fields, $orderhead->[0]->hash(), 'swe'
-				);
+			my $invoice_addresses = $self->translations->details_headers(
+				'order_addresses', $orderaddresses_fields, $invoiceaddress, 'swe'
+			) if $invoiceaddress;
 
-				my $order_companies = $self->translations->details_headers(
-					'companies', $ordercompanies_fields, $ordercompanies->[0]->hash(), 'swe'
-				);
-				foreach my $key (keys(%{$order_companies})) {
-					$order->{header_data}->{$key} = $order_companies->{$key};
-				}
+			say "load_sales_order_api 9";
+			foreach my $key (keys(%{$invoice_addresses})) {
+				$order->{header_data}->{invoiceaddress}->{$key} = $invoice_addresses->{$key};
+			}
+			say "load_sales_order_api 10";
+			my $delivery_addresses = $self->translations->details_headers(
+				'order_addresses', $orderaddresses_fields, $deliveryaddress, 'swe'
+			) if $deliveryaddress;
+			say "load_sales_order_api 11";
+			foreach my $key (keys(%{$delivery_addresses})) {
+				$order->{header_data}->{deliveryaddress}->{$key} = $delivery_addresses->{$key};
+			}
+			say "load_sales_order_api 12";
+			$order->{error} = 'Success';
 
-				my $invoice_addresses = $self->translations->details_headers(
-					'order_addresses', $orderaddresses_fields, $invoiceaddress->[0]->hash(), 'swe'
-				);
-				foreach my $key (keys(%{$invoice_addresses})) {
-					$order->{header_data}->{invoiceaddress}->{$key} = $invoice_addresses->{$key};
-				}
+			$self->render(json => $order);
 
-				my $delivery_addresses = $self->translations->details_headers(
-					'order_addresses', $orderaddresses_fields, $deliveryaddress->[0]->hash(), 'swe'
-				);
-				foreach my $key (keys(%{$delivery_addresses})) {
-					$order->{header_data}->{deliveryaddress}->{$key} = $delivery_addresses->{$key};
-				}
-
-				$order->{error} = 'Success';
-
-				$self->render(json => $order);
-
-			})->catch(sub {
-				my $err = shift;
-				Daje::Utils::Sentinelsender->new()->capture_message('','WebsShop', (ref $self), (caller(0))[3], $err);
-				my $order->{header_data} = '';
-				$order->{error} = $err;
-				say $err;
-				$self->render(json => $order);
-			})->wait;
+			# })->catch(sub {
+			# 	my $err = shift;
+			# 	Daje::Utils::Sentinelsender->new()->capture_message('','WebsShop', (ref $self), (caller(0))[3], $err);
+			# 	my $order->{header_data} = '';
+			# 	$order->{error} = $err;
+			# 	say $err;
+			# 	$self->render(json => $order);
+			# })->wait;
 		}
 
 	}

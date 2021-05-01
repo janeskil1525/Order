@@ -52,18 +52,18 @@ sub startup {
     );
     $self->authenticate->endpoint_address($self->config->{authenticate}->{endpoint_address});
     $self->authenticate->key($self->config->{authenticate}->{key});
-  $self->helper(
+    $self->helper(
       converter => sub {
         state $converter = Order::Helper::Shoppingcart::Converter->new(pg => shift->pg)
       }
-  );
-  $self->helper(
+    );
+    $self->helper(
       translations => sub {
         state $translations = Translations::Helper::Client->new();
       }
-  );
-  $self->translations->endpoint_address($self->config->{translations}->{endpoint_address});
-  $self->translations->key($self->config->{translations}->{key});
+    );
+    $self->translations->endpoint_address($self->config->{translations}->{endpoint_address});
+    $self->translations->key($self->config->{translations}->{key});
 
     $self->helper(
         messenger => sub {
@@ -116,7 +116,7 @@ sub startup {
 
     $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-    )->migrate(28);
+    )->migrate(29);
 
     my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp
@@ -241,7 +241,7 @@ sub startup {
     $auth_api->get('/v1/orders/sales/:company')->to('orders#list_salesorders');
     $auth_api->get('/v1/orders/item/load/')->to('orders#load_item_api');
     $auth_api->get('/v1/orders/load/purchase/:orders_pkey')->to('orders#load_purchase_order_api');
-    $auth_api->get('/v1/orders/load/sales/:orders_pkey')->to('orders#load_sales_order_api');
+    $auth_api->get('/v1/orders/load/sales/:sales_order_head_pkey')->to('orders#load_sales_order_api');
 
     $auth_api->get('/v1/rfqs/list/supplier/:supplier/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_supplier_api');
     $auth_api->get('/v1/rfqs/list/customer/:customer/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_customer_api');

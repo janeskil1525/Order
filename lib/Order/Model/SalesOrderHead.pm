@@ -1,5 +1,5 @@
 package Order::Model::SalesOrderHead;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures, -async_await;
 
 
 use Mojo::JSON qw {decode_json from_json encode_json};
@@ -126,18 +126,26 @@ sub load_order_head_p{
     );
 }
 
-sub loadOpenOrderList{
-    my ($self, $company, $ordertype, $grid_fields_list) = @_;
+sub loadOpenOrderList ($self, $company, $grid_fields_list) {
 
-    my $selectnames = Daje::Utils::Selectnames->new()->get_select_names($grid_fields_list);
+    my $selectnames = Order::Helper::Selectnames->new()->get_select_names($grid_fields_list);
 
-    return $self->pg->db->select(
-        'sales_order_head',
-        $selectnames,
-        {
-            order_type => $ordertype,
-            company => $company
-        })->hashes;
+    my $orders = try {
+        $self->pg->db->select(
+            'sales_order_head',
+            $selectnames,
+            {
+                company => $company
+            }
+        );
+    } catch {
+        say $_;
+    };
+
+    my $hash = ();
+    $hash = $orders->hashes if $orders and $orders->rows() > 0;
+
+    return $hash;
 }
 
 sub upsertHead{

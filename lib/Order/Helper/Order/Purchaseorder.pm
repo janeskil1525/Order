@@ -8,8 +8,9 @@ use Daje::Model::User;
 use Daje::Order::Order;
 use Daje::Utils::Translations;
 
-our $VERSION = '0.07';
 
+has 'translations';
+has 'settings';
 has 'pg';
 
 sub getOpenPoList{

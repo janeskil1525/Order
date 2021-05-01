@@ -1,5 +1,5 @@
 package Order::Controller::Orders;
-use Mojo::Base 'Mojolicious::Controller';
+use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 use Daje::Utils::Sentinelsender;
 use Mojo::Promise;
@@ -13,11 +13,12 @@ sub list_purchaseorders{
 }
 
 
-sub list_salesorders{
-	my $self = shift;
+sub list_salesorders ($self) {
+
 	my $company = $self->param("company");
-	my $token = $self->req->headers->header('X-Token-Check');
-	my $salesorders = $self->order->getOpenSoList($company);
+
+	my $salesorders = $self->salesorder->getOpenSoList($company);
+	say "back in list_salesorders";
 	$self->render(json => $salesorders);
 }
 
@@ -70,7 +71,8 @@ sub load_sales_order_api{
 	my $validator = $self->validation;
 	if($validator->required('orders_pkey')) {
 		my $orders_pkey = $self->param('orders_pkey');
-		my $fields_list = $self->settings->get_settings_list('Order_items_grid', $token);
+		say "load_sales_order_api";
+		my $fields_list = $self->settings->get_settings_list('Order_items_grid', 0,0);
 		my $order->{order_items}->{headers} = $self->translations->grid_header(
 			'Order_items_grid', $fields_list, 'swe'
 		);
@@ -175,8 +177,8 @@ sub load_purchase_order_api{
 	if($validator->required('orders_pkey')) {
 		my $orders_pkey = $self->param('orders_pkey');
 		my $ordertype = $self->param('ordertype');
-
-		my $fields_list = $self->settings->get_settings_list('Order_items_grid', $token);
+say "load_purchase_order_api";
+		my $fields_list = $self->settings->get_settings_list('Order_items_grid', 0,0);
 		my $order->{order_items}->{headers} = $self->translations->grid_header(
 			'Order_items_grid', $fields_list, 'swe'
 		);

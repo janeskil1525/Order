@@ -1,8 +1,9 @@
 package Order::Helper::Order::Import;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures;
 
 use Mojo::JSON qw {decode_json };
 
+use Order::Helper::Order::CustomerData;
 use Order::Model::SalesOrderHead;
 use Order::Model::SalesOrderItem;
 use Order::Model::PurchaseOrderHead;
@@ -29,6 +30,7 @@ sub importBasket{
 		my $db = $self->pg->db;
 		my $tx = $db->begin;
 
+
 		for my $item (@{$items}){
 			my %params = map { $_ => $item->{supplier}  } @suppliers;
 			if (!( exists $params{$item->{supplier}})) {
@@ -37,6 +39,11 @@ sub importBasket{
 					db => $db
 				)->upsertHead($basket, 2, $item);
 
+				Order::Helper::Order::CustomerData->new(
+					db => $db
+				)->insertCustomerData(
+					$basket->{basket}->{customer}, $salesorder_head_pkey
+				);
 				$basket->{order_no} = 0;
 				$purchaseorder_head_pkey = Order::Model::PurchaseOrderHead->new(
 					db => $db

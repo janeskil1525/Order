@@ -1156,3 +1156,52 @@ CREATE UNIQUE INDEX idx_salesorder_addresses_salesorder_address_type_unique
         (sales_order_head_fkey, sales_order_addresses_fkey, address_type COLLATE pg_catalog."default");
 
 -- 29 down
+
+-- 30 up
+CREATE TABLE purchase_order_addresses
+(
+    purchase_order_addresses_pkey serial,
+    editnum              bigint                                             NOT NULL DEFAULT 1,
+    insby                character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    insdatetime          timestamp without time zone                        NOT NULL DEFAULT now(),
+    modby                character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    moddatetime          timestamp without time zone                        NOT NULL DEFAULT now(),
+    name                 character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    address1             character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    address2             character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    address3             character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    city                 character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    zipcode              character varying(200) COLLATE pg_catalog."default"         DEFAULT ''::character varying,
+    country              character varying(30) COLLATE pg_catalog."default"          DEFAULT ''::character varying,
+    CONSTRAINT purchase_order_addresses_pkey PRIMARY KEY (purchase_order_addresses_pkey)
+);
+
+CREATE TABLE purchaseorder_addresses_purchaseorder
+(
+    purchaseorder_addresses_purchaseorder_pkey serial,
+    editnum bigint NOT NULL DEFAULT 1,
+    insby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    insdatetime timestamp without time zone NOT NULL DEFAULT now(),
+    modby character varying(25) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Unknown'::character varying,
+    moddatetime timestamp without time zone NOT NULL DEFAULT now(),
+    purchase_order_head_fkey bigint NOT NULL,
+    purchase_order_addresses_fkey bigint NOT NULL,
+    address_type character varying COLLATE pg_catalog."default" NOT NULL DEFAULT 'Invoice'::character varying,
+    CONSTRAINT purchaseorder_addresses_purchaseorder_pkey PRIMARY KEY (purchaseorder_addresses_purchaseorder_pkey),
+    CONSTRAINT idx_purchase_order_head_fkey FOREIGN KEY (purchase_order_head_fkey)
+        REFERENCES purchase_order_head (purchase_order_head_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE,
+    CONSTRAINT purchase_order_addresses_fkey FOREIGN KEY (purchase_order_addresses_fkey)
+        REFERENCES purchase_order_addresses (purchase_order_addresses_pkey) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        DEFERRABLE
+);
+
+CREATE UNIQUE INDEX idx_purchaseorder_addresses_purchaseorder_address_type_unique
+    ON purchaseorder_addresses_purchaseorder USING btree
+        (purchase_order_head_fkey, purchase_order_addresses_fkey, address_type COLLATE pg_catalog."default");
+
+-- 30 down

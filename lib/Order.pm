@@ -14,6 +14,7 @@ use Parameters::Helper::Client;
 use Translations::Helper::Client;
 use Order::Helper::Orion::Reservation;
 use Order::Helper::Order::Salesorder;
+use Order::Helper::Order::Purchaseorder;
 
 use Authenticate::Helper::Client;
 use Parameters::Helper::Client;
@@ -90,6 +91,14 @@ sub startup {
     $self->salesorder->settings($self->settings);
 
     $self->helper(
+        purchaseorder => sub {
+            state $salesorder = Order::Helper::Order::Purchaseorder->new(pg => shift->pg)
+        }
+    );
+    $self->purchaseorder->translations($self->translations);
+    $self->purchaseorder->settings($self->settings);
+
+    $self->helper(
       orionreservation => sub {
         state $orionreservation = Order::Helper::Orion::Reservation->new(config => shift->config)
       }
@@ -116,7 +125,7 @@ sub startup {
 
     $self->pg->migrations->name('order')->from_file(
       $self->dist_dir->child('migrations/order.sql')
-    )->migrate(29);
+    )->migrate(30);
 
     my $schema = from_json(
       Mojo::File->new($self->dist_dir->child('schema/order.json'))->slurp
@@ -237,10 +246,10 @@ sub startup {
     $auth_route->get('/companies/list/')->to('companies#list');
     $auth_route->get('/users/list/')->to('users#list');
 
-    $auth_api->get('/v1/orders/purchase/')->to('orders#list_purchaseorders');
+    $auth_api->get('/v1/orders/purchase/:company')->to('orders#list_purchaseorders');
     $auth_api->get('/v1/orders/sales/:company')->to('orders#list_salesorders');
     $auth_api->get('/v1/orders/item/load/')->to('orders#load_item_api');
-    $auth_api->get('/v1/orders/load/purchase/:orders_pkey')->to('orders#load_purchase_order_api');
+    $auth_api->get('/v1/orders/load/purchase/:purchase_order_head_pkey')->to('orders#load_purchase_order_api');
     $auth_api->get('/v1/orders/load/sales/:sales_order_head_pkey')->to('orders#load_sales_order_api');
 
     $auth_api->get('/v1/rfqs/list/supplier/:supplier/:rfqstatus')->to('rfqs#list_all_rfqs_from_status_supplier_api');

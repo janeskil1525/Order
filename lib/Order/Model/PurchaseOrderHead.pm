@@ -1,10 +1,10 @@
 package Order::Model::PurchaseOrderHead;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures;
 
 use Mojo::JSON qw {decode_json };
 use Order::Helper::Selectnames;
 use Order::Model::OrderAddresses;
-
+use Order::Helper::Selectnames;
 use Order::Utils::Postgres::Columns;
 
 use Try::Tiny;
@@ -86,20 +86,22 @@ sub load_order_head_p{
     );
 }
 
-sub loadOpenOrderList{
-    my ($self, $companies_fkey, $ordertype, $grid_fields_list) = @_;
+sub loadOpenOrderList ($self, $company, $grid_fields_list)  {
 
-    my $selectnames = Daje::Utils::Selectnames->new()->get_select_names($grid_fields_list);
+    my $selectnames = Order::Helper::Selectnames->new()->get_select_names($grid_fields_list);
 
-    return $self->pg->db->select(
-        ['purchase_order_head',
-            ['users', users_pkey => 'users_fkey'],
-            ['companies', companies_pkey => 'companies_fkey']],
+    my $result = $self->pg->db->select(
+        'purchase_order_head',
         $selectnames,
         {
-            order_type => $ordertype,
-            companies_fkey => $companies_fkey
-        })->hashes;
+            company => $company
+        }
+    );
+
+    my $hash = ();
+    $hash = $result->hashes if $result and $result->rows > 0;
+
+    return $hash;
 }
 
 sub upsertHead{

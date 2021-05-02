@@ -1,5 +1,5 @@
 package Order::Model::PurchaseOrderItem;
-use Mojo::Base 'Daje::Utils::Sentinelsender';
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures;
 
 use Order::Utils::Postgres::Columns;
 use Mojo::JSON qw {decode_json };
@@ -8,8 +8,22 @@ use Try::Tiny;
 has 'pg';
 has 'db';
 
-sub load_order_items_p{
-	my ($self, $order_head_pkey) = @_;
+
+sub load_order_items ($self, $order_head_pkey) {
+
+	my $result =  $self->pg->db->select(
+		'purchase_order_items', '*',
+		{
+			purchase_order_head_fkey => $order_head_pkey
+		}
+	);
+
+	my $hash;
+	$hash = $result->hashes if $result and $result->rows > 0;
+	return $hash;
+}
+
+sub load_order_items_p ($self, $order_head_pkey) {
 
 	return $self->pg->db->select_p(
 		'order_items', '*',
@@ -19,8 +33,7 @@ sub load_order_items_p{
 }
 
 
-sub upsertItem{
-	my ($self, $data, $purchase_order_head_pkey) = @_;
+sub upsertItem ($self, $data, $purchase_order_head_pkey) {
 
 	my $db;
 	if($self->db) {
@@ -58,8 +71,7 @@ sub upsertItem{
 	return $result;
 }
 
-sub set_setdefault_data{
-	my ($self, $data) = @_;
+sub set_setdefault_data ($self, $data) {
 
 	my $fields;
 	($data, $fields) = Order::Utils::Postgres::Columns->new(
@@ -69,8 +81,7 @@ sub set_setdefault_data{
 	return $data, $fields;
 }
 
-sub get_table_column_names {
-	my $self = shift;
+sub get_table_column_names ($self) {
 
 	my $fields;
 	$fields = Order::Utils::Postgres::Columns->new(

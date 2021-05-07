@@ -15,6 +15,7 @@ use Translations::Helper::Client;
 use Order::Helper::Orion::Reservation;
 use Order::Helper::Order::Salesorder;
 use Order::Helper::Order::Purchaseorder;
+use Order::Helper::Order::Export;
 
 use Authenticate::Helper::Client;
 use Parameters::Helper::Client;
@@ -102,6 +103,12 @@ sub startup {
       orionreservation => sub {
         state $orionreservation = Order::Helper::Orion::Reservation->new(config => shift->config)
       }
+    );
+
+    $self->helper(
+        export => sub {
+            state $export = Order::Helper::Order::Export->new(pg => shift->pg)
+        }
     );
 
     $self->helper(

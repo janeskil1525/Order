@@ -1,6 +1,7 @@
 package Order::Controller::Orders;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
+use Mojo::JSON qw {decode_json};
 use Daje::Utils::Sentinelsender;
 use Mojo::Promise;
 use Data::Dumper;
@@ -94,4 +95,19 @@ sub load_purchase_order_api{
     }
 }
 
+sub export_order ($self) {
+
+	$self->render_later;
+
+	my $data = $self->req->body;
+	my $system = decode_json($data);
+
+
+	$self->export->export_orders($system->{system})->then(sub ($orders) {
+
+		$self->render(json => {result => $orders});
+	})->catch(sub ($err) {
+		$self->render(json => {result => $err});
+	})->wait;
+}
 1;

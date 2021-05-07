@@ -1,5 +1,5 @@
 package Order::Model::SalesOrderItem;
-use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures;
+use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures, -async_await;
 
 use Order::Utils::Postgres::Columns;
 use Mojo::JSON qw {decode_json };
@@ -19,6 +19,22 @@ sub load_order_items_p ($self, $sales_order_head_pkey) {
 }
 
 sub load_salesorder_items ($self, $sales_order_head_pkey) {
+
+	my $result = $self->pg->db->select (
+		'sales_order_items',
+		'*',
+		{
+			sales_order_head_fkey => $sales_order_head_pkey
+		}
+	);
+
+	my $hash;
+	$hash = $result->hashes if $result and $result->rows() > 0;
+
+	return $hash;
+}
+
+async sub load_salesorder_items_async ($self, $sales_order_head_pkey) {
 
 	my $result = $self->pg->db->select (
 		'sales_order_items',

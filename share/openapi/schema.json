@@ -54,6 +54,49 @@
           }
         }
       }
+    },
+    "/v1/order/export/": {
+      "post": {
+        "operationId": "orderExport",
+        "x-mojo-name": "export_order",
+        "x-mojo-to": "orders#export_order",
+        "summary": "export order data",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "system",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout basket response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "servers": [

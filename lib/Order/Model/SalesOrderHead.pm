@@ -28,6 +28,19 @@ sub set_export_status {
     );
 }
 
+async sub set_export_status_async {
+    my ($self, $sales_order_head_pkey, $status) = @_;
+
+    return $self->pg->db->update(
+        'sales_order_head',
+        {
+            export_status => $status,
+        },{
+        sales_order_head_pkey => $sales_order_head_pkey,
+    }
+    );
+}
+
 sub get_order_for_export {
     my ($self, $export_to) = @_;
 
@@ -135,6 +148,27 @@ sub loadOpenOrderList ($self, $company, $grid_fields_list) {
             $selectnames,
             {
                 company => $company
+            }
+        );
+    } catch {
+        say $_;
+    };
+
+    my $hash = ();
+    $hash = $orders->hashes if $orders and $orders->rows() > 0;
+
+    return $hash;
+}
+
+async sub loadExportOrderList ($self, $system) {
+
+    my $orders = try {
+        $self->pg->db->select(
+            'sales_order_head',
+            undef,
+            {
+                export_to     => $system,
+                export_status => 'new'
             }
         );
     } catch {

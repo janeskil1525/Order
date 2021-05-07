@@ -43,4 +43,37 @@ async sub checkout ($self,  $userid, $company, $system, $basket_data) {
     return $result->{result};
 
 }
+
+async sub export ($self, $system) {
+
+    my $ua = Mojo::UserAgent->new();
+    my $post_data->{system} = $system;
+
+    my $res = $ua->post(
+        $self->endpoint_address() . '/api/v1/order/export/' =>
+            {'X-Token-Check' => $self->key()} =>
+            json => $post_data
+    )->result;
+
+    my $body;
+    if($res->is_error){
+        $self->capture_message(
+            'Order', 'Order::Helper::Client::export', 'Order::Helper::Client',
+            (caller(0))[3], $res->message
+        );
+        say $res->message;
+    } else {
+        $body = $res->body;
+    }
+
+    my $result;
+    if($body){
+        $result = decode_json($body);
+    } else {
+        $result->{result} = '';
+    }
+
+    return $result->{result};
+
+}
 1;

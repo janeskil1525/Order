@@ -19,6 +19,8 @@ lib/Order/Helper/Mail/User/SoCreated.pm
 lib/Order/Helper/Messenger/Message.pm
 lib/Order/Helper/Messenger/Notice.pm
 lib/Order/Helper/Order.pm
+lib/Order/Helper/Order/CustomerData.pm
+lib/Order/Helper/Order/Export.pm
 lib/Order/Helper/Order/Import.pm
 lib/Order/Helper/Order/Purchaseorder.pm
 lib/Order/Helper/Order/Salesorder.pm
@@ -41,16 +43,19 @@ lib/Order/Helper/Postgres/Columns.pm
 lib/Order/Helper/Quotes.pm
 lib/Order/Helper/Rfqs.pm
 lib/Order/Helper/Selectnames.pm
+lib/Order/Helper/Shoppingcart/Converter.pm
 lib/Order/Helper/Wanted/Interface.pm
 lib/Order/Model/Addresses.pm
 lib/Order/Model/BasketAdresses.pm
 lib/Order/Model/Menu.pm
 lib/Order/Model/OrderAddresses.pm
 lib/Order/Model/OrderCompanies.pm
+lib/Order/Model/PurchaseorderAdresses.pm
 lib/Order/Model/PurchaseOrderHead.pm
 lib/Order/Model/PurchaseOrderItem.pm
 lib/Order/Model/Quotes.pm
 lib/Order/Model/Rfqs.pm
+lib/Order/Model/SalesorderAdresses.pm
 lib/Order/Model/SalesOrderHead.pm
 lib/Order/Model/SalesOrderItem.pm
 lib/Order/Model/User.pm
@@ -175,4 +180,3 @@ share/schema/order.json
 share/templates/layouts/default.html.ep
 share/templates/logon/logon.html.ep
 share/templates/menu/menu.html.ep
-

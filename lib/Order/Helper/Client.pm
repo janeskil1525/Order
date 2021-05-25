@@ -41,7 +41,6 @@ async sub checkout ($self,  $userid, $company, $system, $basket_data) {
     }
 
     return $result->{result};
-
 }
 
 async sub export ($self, $system) {

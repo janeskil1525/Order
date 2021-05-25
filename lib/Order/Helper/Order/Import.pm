@@ -31,7 +31,6 @@ sub importBasket{
 		my $db = $self->pg->db;
 		my $tx = $db->begin;
 
-
 		for my $item (@{$items}){
 			my %params = map { $_ => $item->{supplier}  } @suppliers;
 			if (!( exists $params{$item->{supplier}})) {

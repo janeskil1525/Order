@@ -179,7 +179,7 @@ sub startup {
 
     my $auth_api = $self->routes->under( '/api', sub {
     my ( $c ) = @_;
-    say "Api_route";
+
     return 1 if $c->req->headers->header('X-Token-Check') eq $c->config->{key} ;
     return 1 if $c->authenticate->authenticate(
         $c->req->headers->header('X-User-Check'), $c->req->headers->header('X-Token-Check'), 'Order'

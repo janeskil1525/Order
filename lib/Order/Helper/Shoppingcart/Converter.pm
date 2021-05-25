@@ -23,16 +23,16 @@ sub _create_orders ($job, $data) {
     my $pg = $job->app->pg;
     my $config = $job->app->config;
     my $messenger = $job->app->messenger;
-    my $result = create_orders($pg, $data, $config, $messenger);
+    create_orders($pg, $data, $config, $messenger)->then(sub ($result) {
 
-    if($result){
         $job->finish({ status => 'success'});
-    }else{
-        $job->finish({ status => 'failed'});
-    }
+    })->catch(sub ($err) {
+
+        $job->finish({ status => $err});
+    })->wait;
 }
 
-sub create_orders ($pg, $basket, $config, $messenger) {
+async sub create_orders ($pg, $basket, $config, $messenger) {
 
     my $order = Order::Helper::Order::Import->new(pg => $pg)->importBasket($basket);
     my $result;
@@ -40,7 +40,7 @@ sub create_orders ($pg, $basket, $config, $messenger) {
         #$basket->setStatusOrder($data->{basketid});
         my $message = Order::Helper::Messenger::Message->new(config => $config);
         my $length = scalar @{$order->{salesorder_head_pkey}};
-        try {
+
             for(my $i = 0; $i < $length; $i++) {
                 my $salesorder_notice = Order::Helper::Messenger::Notice->new();
                 $salesorder_notice->title('Kundorder');
@@ -60,7 +60,7 @@ sub create_orders ($pg, $basket, $config, $messenger) {
 
                 my $message_hash = $salesorder_notice->get_payload();
 
-                $messenger->add_message(
+                my $response = await $messenger->add_message(
                     $salesorder_notice->company(),
                     $basket->{system},
                     $message_hash
@@ -69,22 +69,22 @@ sub create_orders ($pg, $basket, $config, $messenger) {
                 my $salesorderhead = $summary->load_order_head(@{$order->{salesorder_head_pkey}}[$i]);
 
                 $salesorderhead->{type} = 'salesorder_created';
-                $messenger->add_message(
+                $response = await $messenger->add_message(
                     $salesorder_notice->company(),
                     $basket->{system},
                     $salesorderhead
                 );
             }
-        } catch {
-            Daje::Utils::Sentinelsender->new()->capture_message(
-                '', 'Order::Helper::Shoppingcart::Converter::create_orders', 'create_orders', (caller(0))[3], $_
-            );
-            say "[Order::Helper::Shoppingcart::Converter::create_orders]  " . $_;
-        };
+
+            # Daje::Utils::Sentinelsender->new()->capture_message(
+            #     '', 'Order::Helper::Shoppingcart::Converter::create_orders', 'create_orders', (caller(0))[3], $_
+            # );
+            # say "[Order::Helper::Shoppingcart::Converter::create_orders]  " . $_;
+
 
 
         $length = scalar @{$order->{purchaseorder_head_pkey}};
-        try {
+
             for(my $i = 0; $i < $length; $i++) {
                 my $purchaseorder_notice = Order::Helper::Messenger::Notice->new(
                     pg => $pg,
@@ -107,7 +107,7 @@ sub create_orders ($pg, $basket, $config, $messenger) {
                 );
 
                 my $message_hash = $purchaseorder_notice->get_payload();
-                $messenger->add_message(
+                my $response = await $messenger->add_message(
                     $purchaseorder_notice->company(),
                     $basket->{system},
                     $message_hash
@@ -116,19 +116,19 @@ sub create_orders ($pg, $basket, $config, $messenger) {
                 my $purchasorderhead = $summary->load_order_head(@{$order->{purchaseorder_head_pkey}}[$i]);
                 $purchasorderhead->{type} = 'purchaseorder_created';
 
-                $messenger->add_message(
+                $response = await $messenger->add_message(
                     $purchaseorder_notice->company(),
                     $basket->{system},
                     $purchasorderhead
-                );
+                ) ;
             }
-        } catch {
 
-            Daje::Utils::Sentinelsender->new()->capture_message(
-                '', 'Order::Helper::Shoppingcart::Converter::create_orders', 'create_orders', (caller(0))[3], $_
-            );
-            say "[Order::Helper::Shoppingcart::Converter::create_orders]  " . $_;
-        };
+
+            # Daje::Utils::Sentinelsender->new()->capture_message(
+            #     '', 'Order::Helper::Shoppingcart::Converter::create_orders', 'create_orders', (caller(0))[3], $_
+            # );
+            # say "[Order::Helper::Shoppingcart::Converter::create_orders]  " . $_;
+
 
         $result = 1;
     } else {
@@ -138,10 +138,13 @@ sub create_orders ($pg, $basket, $config, $messenger) {
     return $result
 }
 
-sub create_orders_test ($self, $pg, $data, $config, $minion) {
+sub create_orders_test ($self, $pg, $data, $config, $messenger) {
 
-    my $result = create_orders($pg, $data, $config, $minion);
+    create_orders($pg, $data, $config, $messenger)->then(sub ($result){
+        return 1;
+    })->catch(sub ($err) {
+       return $err;
+    })->wait;
 
-    return $result;
 }
 1;

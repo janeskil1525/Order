@@ -9,7 +9,6 @@ use File::Share;
 use Order::Model::Menu;
 use Order::Model::Users;
 use Order::Helper::Shoppingcart::Converter;
-use Order::Helper::Rfqs;
 use Parameters::Helper::Client;
 use Translations::Helper::Client;
 use Order::Helper::Orion::Reservation;

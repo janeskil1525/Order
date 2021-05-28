@@ -110,16 +110,6 @@ sub startup {
         }
     );
 
-    $self->helper(
-      rfqs => sub {
-        state $rfqs= Order::Helper::Rfqs->new(pg => shift->pg)
-      }
-    );
-    $self->helper(
-      wanted => sub {
-        state $wanted = Order::Helper::Wanted::Interface->new(pg => shift->pg)
-      }
-    );
     say "Order " . $self->pg->db->query('select version() as version')->hash->{version};
 
     $self->renderer->paths([

@@ -131,7 +131,6 @@ sub startup {
     $self->plugin('Subscription');
 
     $self->converter->init($self->minion);
-    $self->rfqs($self->minion);
 
     # Router
     my $auth_route = $self->routes->under( '/app', sub {

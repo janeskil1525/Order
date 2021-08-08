@@ -6,6 +6,7 @@ use Test::More;
 use Mojo::JSON qw {from_json};
 use Order::Helper::Shoppingcart::Converter;
 use Messenger::Helper::Client;
+use Mailer::Helper::Client;
 
 use Mojo::Pg;
 use Minion;
@@ -27,15 +28,23 @@ sub convert {
     $config->{messenger}->{key} = '8542f1f2-1dcd-4446-a97f-e5661d6d3412';
     $config->{messenger}->{messenger_endpoint} = '/api/vi/messenger/add/notice/';
 
+    $config->{mailer}->{key} = '8542f1f2-1dcd-4446-a97f-e5661d6d3412';
+    $config->{mailer}->{endpoint_address} = 'mailer.laga.se';
+
     my $messenger = Messenger::Helper::Client->new(
         endpoint_address => $config->{messenger}->{endpoint_address},
         key              => $config->{messenger}->{key}
     );
 
+    my $mailer= Mailer::Helper::Client->new(
+        endpoint_address => $config->{mailer}->{endpoint_address},
+        key              => $config->{mailer}->{key}
+    );
+
     $result = Order::Helper::Shoppingcart::Converter->new(
         pg => $pg
     )->create_orders_test(
-        $pg, @{$import_json}[0], $config, $messenger
+        $pg, @{$import_json}[0], $config, $messenger, $mailer
     );
 
     return $result;

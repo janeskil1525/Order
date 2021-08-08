@@ -3,7 +3,6 @@ use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures;
 
 use Mojo::JSON qw {decode_json };
 use Order::Helper::Selectnames;
-use Order::Model::OrderAddresses;
 use Order::Helper::Selectnames;
 use Order::Utils::Postgres::Columns;
 

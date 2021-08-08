@@ -4,8 +4,6 @@ use Mojo::Base 'Daje::Utils::Sentinelsender', -signatures, -async_await;
 
 use Mojo::JSON qw {decode_json from_json encode_json};
 use Order::Helper::Selectnames;
-use Order::Model::OrderAddresses;
-use Order::Model::OrderCompanies;
 use Order::Utils::Postgres::Columns;
 use Order::Utils::User;
 use Try::Tiny;
